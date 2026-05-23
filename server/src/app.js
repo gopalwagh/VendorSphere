@@ -11,6 +11,8 @@ import errorMiddleware from "./middleware/errorMiddleware.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import protect from "./middleware/authMiddleware.js";
 import productRoutes from "./modules/product/product.routes.js";
+import cartRoutes from "./modules/cart/cart.routes.js";
+import orderRoutes from "./modules/order/order.routes.js";
 
 const app = express();
 
@@ -49,6 +51,8 @@ app.get("/profile",protect,(req,res)=> {
 
 app.use("/api/v1/auth",authRoutes);
 app.use("/api/v1/products", productRoutes);
+app.use("/api/v1/cart", cartRoutes);
+app.use("/api/v1/orders", orderRoutes);
 
 app.use(errorMiddleware);
 
