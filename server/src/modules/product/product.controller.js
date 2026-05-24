@@ -125,7 +125,7 @@ export const getAllProducts = asyncHandler(async (req, res) => {
   // set(keyaName,data) == isse se redis mai data store hota hai
   // key : value  ke forat mai data store hota hai
   await redisClient.set(
-    cachekey,
+    cacheKey,
     JSON.stringify(responseData),{
       EX: 60, // 60 seconds ke baad automatically delete ho jayega
     }
@@ -184,9 +184,10 @@ export const addReview = asyncHandler(async(req, res) => {
     throw new ApiError(403,"Only buyers can review this product");
   }
   // check already reviewd
-  const alreadyReviewed = product.reviews.find((review) => {
-    review.user.toString() === req.user._id.toString()
-  });
+  const alreadyReviewed = product.reviews.find(
+    (review) =>
+      review.user.toString() === req.user._id.toString()
+  );
   if (alreadyReviewed) {
     throw new ApiError(400, "You  already reviewed this product"
     );
@@ -209,7 +210,7 @@ export const addReview = asyncHandler(async(req, res) => {
 
   await product.save();
 
-  return res.status(200).json(
+  return res.status(201).json(
     new ApiResponse(
       201,
       product,

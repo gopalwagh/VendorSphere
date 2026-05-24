@@ -1,65 +1,72 @@
 import PDFDocument from "pdfkit";
-
 import fs from "fs";
 import path from "path";
-import doc from "pdfkit";
 
-const generateInvoice = async({
+const generateInvoice = async ({
   order,
   user,
 }) => {
-  /// invoice ka folder
-  const invoiceDir = path.join(
+  const invoiceDir = path.resolve(
     "src",
     "invoices"
   );
-  if(!fs.existsSync(invoiceDir)){
-    fs.mkdirSync(invoiceDir,{
-      recursive : true,
+
+  if (!fs.existsSync(invoiceDir)) {
+    fs.mkdirSync(invoiceDir, {
+      recursive: true,
     });
   }
+
   const filePath = path.join(
     invoiceDir,
     `invoice-${order._id}.pdf`
   );
-  // create pdf 
+
   const pdf = new PDFDocument();
   const stream = fs.createWriteStream(filePath);
-  doc.pipe(stream);
-  // title
-  doc
+
+  pdf.pipe(stream);
+
+  pdf
     .fontSize(22)
     .text("E-Commerce Invoice", {
       align: "center",
     });
-  
-  doc.moveDown();
-  // customer details 
-  doc
+
+  pdf.moveDown();
+
+  pdf
     .fontSize(14)
     .text(`Customer: ${user.name}`);
 
-  doc.text(`Email: ${user.email}`);
-  doc.text(`Order ID: ${order._id}`);
-  doc.text(
+  pdf.text(`Email: ${user.email}`);
+  pdf.text(`Order ID: ${order._id}`);
+  pdf.text(
     `Payment Status: ${order.paymentStatus}`
   );
-  doc.moveDown();
-  //products
+  pdf.moveDown();
+
   order.orderItems.forEach((item) => {
-    doc.text(
-      `${item.quantity} x ₹${item.price}`
+    pdf.text(
+      `${item.quantity} x Rs. ${item.price}`
     );
   });
-  doc.moveDown();
-  //total
-  doc
+
+  pdf.moveDown();
+
+  pdf
     .fontSize(16)
     .text(
-      `Total Amount: ₹${order.totalAmount}`
+      `Total Amount: Rs. ${order.totalAmount}`
     );
-  doc.end();
-  return filePath;  
-}
+
+  await new Promise((resolve, reject) => {
+    stream.on("finish", resolve);
+    stream.on("error", reject);
+    pdf.end();
+  });
+
+  return filePath;
+};
 
 export default generateInvoice;

@@ -13,7 +13,7 @@ router.get("/invoice/:orderId", protect, downloadInvoice);
 router.get("/admin/all-orders",protect, adminOnly, getAllOrders);
 router.patch("/admin/update-status/:orderId", protect, adminOnly, updateOrderStatus);
 
-router.post("/chekout", protect, checkout);
+router.post("/checkout", protect, checkout);
 router.post("/verify-payment", protect, verifyPayment);
 
 export default router;

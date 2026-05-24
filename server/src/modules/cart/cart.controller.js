@@ -152,7 +152,7 @@ export const updateCartQuantity = asyncHandler(async(req, res) => {
     throw new ApiError(404, "Product not found");
   }
 
-  if(quantity > product.Stock){
+  if(quantity > product.stock){
     throw new ApiError(400, "Not enough stock available");
   }
 

@@ -22,7 +22,7 @@ const productSchema = new mongoose.Schema(
     brand : {
       type : String,
     },
-    Stock : { 
+    stock : {
       type : Number,
       required : true,
       default : 0,

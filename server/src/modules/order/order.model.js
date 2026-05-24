@@ -1,60 +1,79 @@
 import mongoose from "mongoose";
 
+const ORDER_STATUSES = [
+  "pending",
+  "paid",
+  "processing",
+  "packed",
+  "shipped",
+  "out_for_delivery",
+  "delivered",
+  "cancelled",
+];
+
+const orderTimelineSchema = new mongoose.Schema(
+  {
+    status: {
+      type: String,
+      enum: ORDER_STATUSES,
+      required: true,
+    },
+    message: {
+      type: String,
+      required: true,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
 const orderSchema = new mongoose.Schema(
   {
     user: {
-      type : mongoose.Schema.Types.ObjectId,
-      ref : "User",
-      required : true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
-    orderItems : [
+    orderItems: [
       {
-        product : {
-          type : mongoose.Schema.Types.ObjectId,
-          ref : "Product",
+        product: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Product",
         },
-        quantity : Number,
-        price : Number,
+        quantity: Number,
+        price: Number,
       },
     ],
-    totalAmount : {
-      type : Number,
-      required : true,
+    totalAmount: {
+      type: Number,
+      required: true,
     },
-    paymentStatus : {
-      type :String,
-      enum : [
-        "pending",
-        "paid",
-        "failed"
-      ],
-      default : "pending"
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed"],
+      default: "pending",
     },
-    orderStatus :{
-      type : String,
-      enum : [
-        "pending",
-        "paid",
-        "processing",
-        "packed",
-        "shipped",
-        "out_for_delivery",
-        "delivered",
-        "cancelled",
-      ],
-      default : "processing",
+    orderStatus: {
+      type: String,
+      enum: ORDER_STATUSES,
+      default: "pending",
     },
-    message : String,
-    updatedAt :{
-      type: Date,
-      Dafault: Date.now,
+    message: String,
+    orderTimeline: {
+      type: [orderTimelineSchema],
+      default: [],
     },
-    razorpayOrderId : String,
-    razorpayPaymentId : String,
+    razorpayOrderId: String,
+    razorpayPaymentId: String,
   },
-  { timestamps : true }
+  { timestamps: true }
 );
 
-const Order = mongoose.model("Order",orderSchema);
+const Order = mongoose.model("Order", orderSchema);
 
 export default Order;
