@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
-import User from "../modules/auth/auth.model.js";
+import User from "../modules/user/user.model.js";
 
 const protect = asyncHandler(async (req, res, next) => {
 

@@ -1,8 +1,8 @@
 import crypto from "crypto";
+import { create } from "domain";
+import path from "path";
 
 import Cart from "../cart/cart.model.js";
-import order from "./order.model.js";
-
 import Product from "../product/product.model.js";
 
 import razorpayInstance from "../../config/razorpay.js";
@@ -11,7 +11,10 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import Order from "./order.model.js";
-import { create } from "domain";
+import User from "../user/user.model.js";
+import emailQueue from
+"../../queues/email.queue.js";
+import generateInvoice from "../../services/generateInvoice.js";
 
 export const checkout = asyncHandler(async(req, res) => {
   const cart = await Cart.findOne({
@@ -23,7 +26,7 @@ export const checkout = asyncHandler(async(req, res) => {
     throw new ApiError(400, "Cart is Empty");
   }
 
-  // calculate total amout 
+  // calculate total amount 
   let totalAmount = 0;
   const orderItems = [];
 
@@ -76,13 +79,13 @@ export const verifyPayment = asyncHandler(async(req, res) => {
       process.env.RAZORPAY_KEY_SECRET
     )
     .update(
-      `${razorpay_order_id} | ${razorpay_payment_id}`
+      `${razorpay_order_id}|${razorpay_payment_id}`
     )
     .digest("hex");
 
     // signature compare karenge ab
     if( generatedSignature !== razorpay_signature ){
-      throw new ApiError(400, "payment Verification Failed");
+      throw new ApiError(400, "Payment Verification Failed");
     }
     // find karo Order
     const order = await Order.findOne({
@@ -93,10 +96,40 @@ export const verifyPayment = asyncHandler(async(req, res) => {
     
     // update order
     order.paymentStatus = "paid";
-    
+    order.orderStatus = "processing";
     order.razorpayPaymentId = razorpay_payment_id;
 
     await order.save();
+    // email send 
+    const user = await User.findById(order.user);
+    await emailQueue.add(
+      "sendOrderEmail",
+      {
+        to: user.email,
+        subject : "Order Placed successfully",
+        html : `
+          <h2>Order Confirmed 🎉</h2>
+          <p>Your payment was successful.</p>
+          <p>Order Amount: ₹${order.totalAmount}</p>
+          <p>Status: ${order.orderStatus}</p>
+        `,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 5000,
+        },
+        // ek bar send ho gaya complete remove from redis
+        removeOnComplete: true,
+      }
+    );
+    // Invoice generated
+    const invoicePath = await generateInvoice({
+      order, user,
+    });
+    console.log("Invoice generated:",
+    invoicePath);
     // reduce product stock
     for(const item of order.orderItems){
       const product = await Product.findById(item.product);
@@ -107,8 +140,8 @@ export const verifyPayment = asyncHandler(async(req, res) => {
     }
 
     // ab cart ko clear karo
-    await Cart.findOneAndUpdate({
-      user : req.user._id,
+    await Cart.findOneAndDelete({
+      user : order.user,
     });
 
     return res.status(200).json(
@@ -167,23 +200,20 @@ export const getAllOrders = asyncHandler(async(req, res) => {
 
 export const updateOrderStatus = asyncHandler(async(req, res) => {
   const { orderId } = req.params;
-  const { status } = req.body;
-  const allowedStatuses = [
-    "processing",
-    "shipped",
-    "delivered",
-    "cancelled"
-  ];
+  const { status, message } = req.body;
   
-  if(!allowedStatuses.includes(status)){
-    throw new ApiError(400, "Invalid order status");
-  }
   const order = await Order.findById(orderId);
   if(!order){
     throw new ApiError(404, "Order not found");
   }
 
   order.orderStatus = status;
+  // add timeline entry
+  order.orderTimeline.push({
+    status,
+    message: message || `Order moved to ${status}`,
+    updatedAt: new Date(),
+  });
   await order.save();
 
   return res.status(200).json(
@@ -191,6 +221,44 @@ export const updateOrderStatus = asyncHandler(async(req, res) => {
       200,
       order,
       "Order status updated"
+    )
+  );
+});
+
+// pdfdownload Invoice api
+export const downloadInvoice = asyncHandler(async(req, res) => {
+  const { orderId } = req.params;
+  const order = await Order.findById(orderId);
+  if(!order){
+    throw new ApiError(404, "Order not Found");
+  }
+  const filePath = path.join(
+    "src",
+    "invoices",
+    `invoice-${order._id}.pdf`
+  );
+
+  res.download(filePath);
+});
+
+export const trackOrder = asyncHandler(async(req, res) =>{ 
+  const { orderId } = req.params;
+  const order = await Order.findById(orderId);
+  if(!order){
+    throw new ApiError(404, "Order not Found");
+  }
+ // optional: ensure user owns order (important)
+  if (order.user.toString() !== req.user._id.toString()){
+    throw new ApiError(403,"Not authorized to view this order");
+  };
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        orderStatus: order.orderStatus,
+        timeline : order.orderTimeline,
+      },
+      "Order tracking fetched successfully"
     )
   );
 });

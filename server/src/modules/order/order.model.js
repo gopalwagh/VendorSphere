@@ -33,12 +33,21 @@ const orderSchema = new mongoose.Schema(
     orderStatus :{
       type : String,
       enum : [
+        "pending",
+        "paid",
         "processing",
+        "packed",
         "shipped",
+        "out_for_delivery",
         "delivered",
         "cancelled",
       ],
       default : "processing",
+    },
+    message : String,
+    updatedAt :{
+      type: Date,
+      Dafault: Date.now,
     },
     razorpayOrderId : String,
     razorpayPaymentId : String,

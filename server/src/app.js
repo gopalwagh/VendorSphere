@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import xssClean from "xss-clean";
+import mongoSanitize from "express-mongo-sanitize";
+import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 
 import ApiError from "./utils/ApiError.js";
@@ -13,21 +16,29 @@ import protect from "./middleware/authMiddleware.js";
 import productRoutes from "./modules/product/product.routes.js";
 import cartRoutes from "./modules/cart/cart.routes.js";
 import orderRoutes from "./modules/order/order.routes.js";
+import couponRoutes from "./modules/coupon/coupon.routes.js";
+import adminRoutes from "./modules/admin/admin.routes.js";
 
 const app = express();
+const limiter = rateLimit({
+  windowMs : 15 * 60 * 1000, // 15 miniutes
+  limit : 100,
+  message : "Too many requests, try again later",
+});
 
-app.use(express.json());
-app.use(cookieParser());
-
+app.use(helmet());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CLIENT_URL,
     credentials: true,
   })
 );
-
-app.use(helmet());
+app.use(limiter);
 app.use(morgan("dev"));
+app.use(express.json());
+app.use(cookieParser());
+app.use(mongoSanitize());
+app.use(xssClean());
 
 app.get("/",(req,res)=> {
   res.json({
@@ -53,6 +64,8 @@ app.use("/api/v1/auth",authRoutes);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/cart", cartRoutes);
 app.use("/api/v1/orders", orderRoutes);
+app.use("/api/v1/coupons",couponRoutes);
+app.use("api/v1/admin", adminRoutes);
 
 app.use(errorMiddleware);
 
