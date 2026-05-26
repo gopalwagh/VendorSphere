@@ -107,7 +107,7 @@ export const refreshAccessToken = asyncHandler(async(req, res) => {
   if(!storedToken){
     throw new ApiError(401, "Session expired");
   }
-  if(!storedToken !== incomingRefreshToken){
+  if(storedToken !== incomingRefreshToken){
     throw new ApiError(401, "Invalid refresh Token");
   }
   const newAccessToken = generateAccessToken(decoded.userId);

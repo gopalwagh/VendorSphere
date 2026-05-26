@@ -2,11 +2,8 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import xssClean from "xss-clean";
-import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
-
 import ApiError from "./utils/ApiError.js";
 import asyncHandler from "./utils/asyncHandler.js";
 
@@ -37,8 +34,6 @@ app.use(limiter);
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(cookieParser());
-app.use(mongoSanitize());
-app.use(xssClean());
 
 app.get("/",(req,res)=> {
   res.json({
