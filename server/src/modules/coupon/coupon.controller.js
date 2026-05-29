@@ -21,7 +21,7 @@ export const createCoupon = asyncHandler(async (req, res) => {
   const coupon = await Coupon.create({
     code,
     discountPercent,
-    expiresAt,
+    expiresAt : new Date(Date.now() + expiresAt * 24 * 60 * 60 * 1000),
     minimumAmount,
   });
 

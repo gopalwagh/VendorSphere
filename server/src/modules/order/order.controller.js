@@ -12,6 +12,7 @@ import Order from "./order.model.js";
 import User from "../user/user.model.js";
 import emailQueue from "../../queues/email.queue.js";
 import generateInvoice from "../../services/generateInvoice.js";
+import { response } from "express";
 
 const ORDER_STATUSES =
   Order.schema.path("orderStatus").enumValues;
@@ -27,7 +28,7 @@ export const checkout = asyncHandler(async (req, res) => {
 
   let totalAmount = 0;
   const orderItems = [];
-
+ 
   for (const item of cart.items) {
     if (!item.product) {
       throw new ApiError(400, "Cart contains an unavailable product");
@@ -42,6 +43,10 @@ export const checkout = asyncHandler(async (req, res) => {
 
     totalAmount += item.product.price * item.quantity;
 
+    if (totalAmount > 500000) {
+      throw new ApiError(400, "Order amount exceeds Razorpay limit of ₹5,00,000");
+    }
+
     orderItems.push({
       product: item.product._id,
       quantity: item.quantity,
@@ -49,10 +54,16 @@ export const checkout = asyncHandler(async (req, res) => {
     });
   }
 
-  const razorpayOrder = await razorpayInstance.orders.create({
-    amount: totalAmount * 100,
-    currency: "INR",
-  });
+  let razorpayOrder;
+  try {
+    razorpayOrder = await razorpayInstance.orders.create({
+      amount: totalAmount * 100,
+      currency: "INR",
+    });
+  } catch (err) {
+    console.error("Razorpay error:", err);
+    throw new ApiError(500, "Failed to create Razorpay order");
+  }
 
   const order = await Order.create({
     user: req.user._id,
@@ -66,7 +77,7 @@ export const checkout = asyncHandler(async (req, res) => {
       },
     ],
   });
-
+  console.log(response)
   return res.status(200).json(
     new ApiResponse(
       200,
