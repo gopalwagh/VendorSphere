@@ -12,7 +12,6 @@ import Order from "./order.model.js";
 import User from "../user/user.model.js";
 import emailQueue from "../../queues/email.queue.js";
 import generateInvoice from "../../services/generateInvoice.js";
-import { response } from "express";
 
 const ORDER_STATUSES =
   Order.schema.path("orderStatus").enumValues;
@@ -77,7 +76,6 @@ export const checkout = asyncHandler(async (req, res) => {
       },
     ],
   });
-  console.log(response)
   return res.status(200).json(
     new ApiResponse(
       200,
@@ -225,7 +223,7 @@ export const getMyOrders = asyncHandler(async (req, res) => {
   })
     .populate({
       path: "orderItems.product",
-      select: "title images price category stock",
+      select: "title images price category stock createdBy",
     })
     .sort({
       createdAt: -1,
@@ -248,7 +246,7 @@ export const getAllOrders = asyncHandler(async (req, res) => {
     })
     .populate({
       path: "orderItems.product",
-      select: "title images price stock",
+      select: "title images price stock createdBy",
     })
     .sort({
       createdAt: -1,

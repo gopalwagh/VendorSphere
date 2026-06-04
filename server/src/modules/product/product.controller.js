@@ -1,10 +1,19 @@
 import Product from "./product.model.js";
 import Order from "../order/order.model.js";
+import cloudinary from "../../config/cloudinary.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import uploadToCloudinary from "../../utils/uploadToCloudinary.js";
 import { redisClient } from "../../config/redis.js";
+
+const invalidateProductCache = async () => {
+  const keys = await redisClient.keys("products:*");
+
+  if (keys.length > 0) {
+    await redisClient.del(...keys);
+  }
+};
 
 export const createProduct = asyncHandler(async (req, res) => {
   const { title, description, price, category, brand, stock , } = req.body;
@@ -37,6 +46,8 @@ export const createProduct = asyncHandler(async (req, res) => {
     }
   );
 
+  await invalidateProductCache();
+
   return res 
     .status(201)
     .json(
@@ -46,6 +57,85 @@ export const createProduct = asyncHandler(async (req, res) => {
         "Product created successfully"
       )
     );
+});
+
+export const updateProduct = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+  const { title, description, price, category, brand, stock } = req.body;
+
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  if (title !== undefined) product.title = title;
+  if (description !== undefined) product.description = description;
+  if (price !== undefined) product.price = price;
+  if (category !== undefined) product.category = category;
+  if (brand !== undefined) product.brand = brand;
+  if (stock !== undefined) product.stock = stock;
+
+  if (req.file) {
+    if (product.images?.[0]?.public_id) {
+      try {
+        await cloudinary.uploader.destroy(product.images[0].public_id);
+      } catch (error) {
+        console.error("Failed to remove old product image:", error.message);
+      }
+    }
+
+    const uploadImage = await uploadToCloudinary(req.file.buffer);
+    product.images = [
+      {
+        url: uploadImage.secure_url,
+        public_id: uploadImage.public_id,
+      },
+    ];
+  }
+
+  await product.save();
+  await invalidateProductCache();
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      product,
+      "Product updated successfully"
+    )
+  );
+});
+
+export const deleteProduct = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    throw new ApiError(404, "Product not found");
+  }
+
+  if (product.images?.length) {
+    for (const image of product.images) {
+      if (!image.public_id) continue;
+
+      try {
+        await cloudinary.uploader.destroy(image.public_id);
+      } catch (error) {
+        console.error("Failed to remove product image:", error.message);
+      }
+    }
+  }
+
+  await Product.findByIdAndDelete(productId);
+  await invalidateProductCache();
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      null,
+      "Product deleted successfully"
+    )
+  );
 });
 
 export const getAllProducts = asyncHandler(async (req, res) => {

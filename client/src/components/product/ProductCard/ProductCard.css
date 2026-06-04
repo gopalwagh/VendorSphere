@@ -1,0 +1,35 @@
+.product-card {
+  border: 1px solid #eee;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: 0.3s;
+  text-decoration: none;
+  color: black;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+}
+
+.product-card img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+
+.product-card h3 {
+  padding: 10px;
+}
+
+.product-card p {
+  padding: 0 10px;
+  color: green;
+}
+
+.product-card button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  background: black;
+  color: white;
+}

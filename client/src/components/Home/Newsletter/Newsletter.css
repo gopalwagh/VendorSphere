@@ -1,0 +1,31 @@
+.newsletter {
+  padding: 80px 8%;
+  text-align: center;
+}
+
+.newsletter h2 {
+  margin-bottom: 15px;
+}
+
+.newsletter p {
+  margin-bottom: 25px;
+}
+
+.newsletter-form {
+  max-width: 600px;
+  margin: auto;
+  display: flex;
+}
+
+.newsletter-form input {
+  flex: 1;
+  height: 50px;
+  padding: 0 15px;
+}
+
+.newsletter-form button {
+  width: 150px;
+  border: none;
+  background: black;
+  color: white;
+}

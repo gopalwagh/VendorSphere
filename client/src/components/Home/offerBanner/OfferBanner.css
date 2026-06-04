@@ -1,0 +1,21 @@
+.offer-banner {
+  padding: 80px 20px;
+  text-align: center;
+  background: #111;
+  color: white;
+}
+
+.offer-banner h2 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+
+.offer-banner p {
+  margin-bottom: 25px;
+}
+
+.offer-banner button {
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+}
