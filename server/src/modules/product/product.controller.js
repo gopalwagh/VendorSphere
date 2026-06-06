@@ -161,7 +161,7 @@ export const getAllProducts = asyncHandler(async (req, res) => {
 
   // category based filter
   if(category){
-    query.category = category;
+    query.category = new RegExp(category, "i");;
   }
   // sorting logic 
   let sortOption = {};
