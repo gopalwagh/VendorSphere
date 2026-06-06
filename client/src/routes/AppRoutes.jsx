@@ -9,6 +9,14 @@ import Products from "../pages/Products/Products";
 import ProductDetails from "../pages/ProductDetails/ProductDetails";
 import Cart from "../pages/Cart/Cart";
 import Checkout from "../pages/Checkout/Checkout";
+import DashboardLayout from "../layouts/DashboardLayout";
+import ManageOrders from "../pages/Dashboard/ManageOrders/ManageOrders";
+import Coupons from "../pages/Dashboard/Coupons/Coupons";
+import DashboardHome from "../pages/Dashboard/DashboardHome/DashboardHome.jsx"
+import ManageProducts from "../pages/Dashboard/ManageProducts/ManageProducts"
+import Analytics from "../pages/Dashboard/Analytics/Analytics";
+import ProtectedRoute from "./ProtectedRoute.jsx"
+import NotFound from "../pages/NotFound/NotFound.jsx";
 
 const AppRoutes = () => {
   return (
@@ -22,6 +30,28 @@ const AppRoutes = () => {
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
       </Route>
+
+      {/* DashBoard Layout Routes  */}
+      <Route 
+        path="/dashboard" 
+        element={ 
+          <ProtectedRoute roles={
+            ["admin"]
+          }>
+            <DashboardLayout />
+          </ProtectedRoute>
+        } 
+      >
+        <Route index element={<DashboardHome />} />
+        <Route path="products" element={<ManageProducts />} />
+        <Route path="orders"   element={<ManageOrders />} />
+        <Route path="analytics" element={<Analytics />} />
+        <Route path="coupons" element={<Coupons />} />
+      </Route>
+
+      {/* Catch-all NotFound */}
+      <Route path="*" element={<NotFound />} />
+      
     </Routes>
   );
 };

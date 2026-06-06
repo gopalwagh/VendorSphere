@@ -1,10 +1,28 @@
 import "./Navbar.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaShoppingCart, FaHeart, FaUser, FaSearch, FaBars, FaTimes } from "react-icons/fa";
 import { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { logoutThunk } from "../../../features/auth/authThunk";
+import toast from "react-hot-toast";
 
 const Navbar = () => {
+  const { user, isAuthenticated } = useSelector((state)=> state.auth);
+  
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleLogout = async () => {
+    const result = await dispatch(logoutThunk());
+    if (result.success) {
+      toast.success("Logged Out Successfully");
+      navigate("/login");
+    } else {
+      toast.error(result.message);
+    }
+  };
 
   return (
     <nav className="navbar">
@@ -36,9 +54,30 @@ const Navbar = () => {
           <FaShoppingCart />
           <small>0</small>
         </Link>
-        <Link to="/login" className="icon">
-          <FaUser />
-        </Link>
+        {
+          isAuthenticated ? (
+            <div className="user-menu">
+              <span>
+                {user?.name}
+              </span>
+              <button
+                className="logout-btn"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              onClick={() =>
+                setMenuOpen(false)
+              }
+            >
+              <FaUser />
+            </Link>
+          )
+        }
       </div>
 
       <button
@@ -76,14 +115,30 @@ const Navbar = () => {
             }
           > Cart
           </Link>
-          <Link
-            to="/login"
-            onClick={() =>
-              setMenuOpen(false)
-            }
-          > Login
-          </Link>
-
+          {
+            isAuthenticated ? (
+              <>
+                <p>
+                  {user?.name}
+                </p>
+                <button
+                  className="logout-btn"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() =>
+                  setMenuOpen(false)
+                }
+              >
+                Login
+              </Link>
+            )
+          }
         </div>  
       )}
     </nav>

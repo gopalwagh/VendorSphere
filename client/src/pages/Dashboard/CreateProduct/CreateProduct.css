@@ -1,0 +1,52 @@
+.create-product {
+  max-width: 800px;
+  margin: auto;
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow:
+    0 2px 10px rgba(0,0,0,0.08);
+}
+
+.create-product h1 {
+  margin-bottom: 25px;
+}
+
+.create-product-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.create-product-form input,
+.create-product-form textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  outline: none;
+}
+
+.create-product-form textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+
+.create-product-form input:focus,
+.create-product-form textarea:focus {
+  border-color: #111;
+}
+
+.create-product-btn {
+  border: none;
+  background: #111;
+  color: white;
+  padding: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.create-product-btn:hover {
+  opacity: 0.9;
+}
