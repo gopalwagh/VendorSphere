@@ -35,9 +35,9 @@ export const createCoupon = asyncHandler(async (req, res) => {
 });
 
 export const applyCoupon = asyncHandler(async (req, res) => {
-  const { code } = req.body;
+  const { couponCode } = req.body;
 
-  if (!code) {
+  if (!couponCode) {
     throw new ApiError(400, "Coupon code is required");
   }
 
@@ -48,12 +48,12 @@ export const applyCoupon = asyncHandler(async (req, res) => {
     select: "price",
   });
 
-  if (!cart) {
-    throw new ApiError(404, "Cart not found");
+  if (!cart.items.length) {
+    throw new ApiError(400, "Cart is empty");
   }
-
+  
   const coupon = await Coupon.findOne({
-    code: code.toUpperCase(),
+    code: couponCode.toUpperCase(),
   });
 
   if (!coupon) {
@@ -68,13 +68,16 @@ export const applyCoupon = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Coupon expired");
   }
 
-  const totalPrice = cart.items.reduce(
+  const subtotal = cart.items.reduce(
     (sum, item) =>
       sum + ((item.product?.price || 0) * item.quantity),
     0
   );
 
-  if (totalPrice < coupon.minimumAmount) {
+  const shipping = subtotal > 0 ? 100 : 0;
+  const tax = Number((subtotal * 0.05).toFixed(2));
+
+  if (subtotal < coupon.minimumAmount) {
     throw new ApiError(
       400,
       `Minimum cart amount is Rs. ${coupon.minimumAmount}`
@@ -82,17 +85,19 @@ export const applyCoupon = asyncHandler(async (req, res) => {
   }
 
   const discountAmount =
-    (totalPrice * coupon.discountPercent) / 100;
-  const finalPrice = totalPrice - discountAmount;
+    Number((subtotal * coupon.discountPercent) / 100).toFixed(2);
+  const grandTotal = Number(subtotal + shipping + tax - discountAmount).toFixed(2);
 
   return res.status(200).json(
     new ApiResponse(
       200,
       {
-        originalPrice: totalPrice,
+        subtotal,
+        shipping,
+        tax,
         discountPercent: coupon.discountPercent,
         discountAmount,
-        finalPrice,
+        grandTotal,
       },
       "Coupon applied"
     )
