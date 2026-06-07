@@ -1,41 +1,45 @@
 import './ProductCard.css';
 import { Link } from "react-router-dom";
 import { FaStar } from "react-icons/fa";
+import useAddToCart from '../../../hooks/useAddToCart';
 
-const ProductCard = () => {
+const ProductCard = ({ product }) => {
+  if(!product){ return null; }
+  const { addToCart } = useAddToCart();
+
   return (
     <div className="product-card">
       <Link
-        to="/products/1"
+        to={`/products/${product._id}`}
         className="product-link"
       >
         <img 
-          src="https://picsum.photos/300" 
-          alt ="product" 
+          src={product?.images?.[0]?.url} 
+          alt ={product.title} 
         />
         <div className="product-body">
           <span className="category">
-            Electronics
+            {product.category}
           </span>
           <h3>
-            Wireless Headphones
+            {product.title}
           </h3>
           <div className="rating">
             <FaStar />
-            <span>4.5</span>
+            <span>{product.averageRating}</span>
           </div>
           <div className="price-box">
             <span className="price">
-              ₹2999
-            </span>
-            <span className="old-price">
-              ₹4999
+              ₹{product.price}
             </span>
           </div>
         </div>
       
       </Link>
-      <button className="cart-btn">
+      <button className="cart-btn" onClick={() => {
+        addToCart(product)
+      }}
+      >
         Add To Cart
       </button>
     </div>

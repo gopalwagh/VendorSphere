@@ -9,6 +9,8 @@ import toast from "react-hot-toast";
 const Navbar = () => {
   const { user, isAuthenticated } = useSelector((state)=> state.auth);
   
+  const { totalItems } = useSelector((state) => state.cart);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -44,7 +46,7 @@ const Navbar = () => {
 
       <div className="nav-actions">
         <Link to="/"> Home </Link>
-        <Link to="/products" >Products </Link>
+        <Link to="/products"> Products </Link>
         <span className="icon">
           <FaHeart />
         </span>
@@ -52,7 +54,7 @@ const Navbar = () => {
         to="/cart"
         className="icon cart">
           <FaShoppingCart />
-          <small>0</small>
+          <small>{ totalItems }</small>
         </Link>
         {
           isAuthenticated ? (
