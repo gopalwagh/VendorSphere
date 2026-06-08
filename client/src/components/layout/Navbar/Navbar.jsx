@@ -1,6 +1,6 @@
 import "./Navbar.css";
 import { Link, useNavigate } from "react-router-dom";
-import { FaShoppingCart, FaHeart, FaUser, FaSearch, FaBars, FaTimes } from "react-icons/fa";
+import { FaHome, FaStore, FaShoppingCart, FaHeart, FaUser, FaSearch, FaBars,  FaClipboardList, FaUserCircle, FaRegUser } from "react-icons/fa";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { logoutThunk } from "../../../features/auth/authThunk";
@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 const Navbar = () => {
   const { user, isAuthenticated } = useSelector((state)=> state.auth);
   
-  const { totalItems } = useSelector((state) => state.cart);
+  const { totalItems, totalOrders } = useSelector((state) => state.cart);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -45,22 +45,39 @@ const Navbar = () => {
       </div>      
 
       <div className="nav-actions">
-        <Link to="/"> Home </Link>
-        <Link to="/products"> Products </Link>
-        <span className="icon">
+        <Link 
+        to="/"
+        className="icon home">
+          <FaHome /> 
+        </Link>
+        <Link 
+          to="/products" 
+          className="icon products"
+        > <FaStore />
+        </Link>
+        <Link 
+          to=""
+          className="icon heart">
           <FaHeart />
-        </span>
-        <Link
-        to="/cart"
-        className="icon cart">
-          <FaShoppingCart />
-          <small>{ totalItems }</small>
         </Link>
         {
           isAuthenticated ? (
+          <>
+          <Link
+            to="/cart"
+            className="icon cart">
+            <FaShoppingCart />
+            <small>{ totalItems }</small>
+          </Link>
+          <Link 
+            to="/orders" 
+            className="icon orders">
+            <FaClipboardList  />
+            <small>{ totalOrders }</small>
+          </Link>
             <div className="user-menu">
               <span>
-                {user?.name}
+                <FaUser />
               </span>
               <button
                 className="logout-btn"
@@ -69,6 +86,7 @@ const Navbar = () => {
                 Logout
               </button>
             </div>
+          </>
           ) : (
             <Link
               to="/login"
@@ -76,7 +94,7 @@ const Navbar = () => {
                 setMenuOpen(false)
               }
             >
-              <FaUser />
+              <FaRegUser />
             </Link>
           )
         }
@@ -98,29 +116,49 @@ const Navbar = () => {
         <div  className="mobile-menu">
           <Link
             to="/"
+            className="icon home"
             onClick={()=>
               setMenuOpen(false)
-            }
-          > Home
+            }> 
+            Home <FaHome />
           </Link>
           <Link
             to="/products"
+            className="icon product"
             onClick={() =>
               setMenuOpen(false)
-            }
-          > Products
-          </Link>
-          <Link
-            to="/cart"
-            onClick={() =>
-              setMenuOpen(false)
-            }
-          > Cart
+            }> 
+            Products <FaStore />
           </Link>
           {
             isAuthenticated ? (
               <>
+              <Link
+                to=""
+                className="icon heart"
+                onClick={() =>
+                  setMenuOpen(false)
+                }> 
+                wishlist <FaHeart />
+              </Link>
+              <Link
+                to="/cart"
+                className="icon cart"
+                onClick={() =>
+                  setMenuOpen(false)
+                }> 
+                Cart <FaShoppingCart />
+              </Link>
+                <Link
+                  to="/orders"
+                  className="icon order"
+                  onClick={() =>
+                    setMenuOpen(false)
+                  }>
+                  Cart <FaClipboardList />
+                </Link>
                 <p>
+                  <FaUser />
                   {user?.name}
                 </p>
                 <button

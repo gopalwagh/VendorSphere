@@ -18,6 +18,6 @@ const couponSlice = createSlice({
   },
 });
 
-export const { setCoupon, clearCoupon } =couponSlice.actions;
+export const { setCoupon, clearCoupon } = couponSlice.actions;
 
 export default couponSlice.reducer;

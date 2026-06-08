@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { fetchProductDetails, } from "../../features/products/productThunk";
 import Loader from "../../components/common/Loader/Loader";
 import useAddToCart from "../../hooks/useAddToCart";
+import toast from "react-hot-toast";
 
 const ProductDetails = () => {
   const { productId } = useParams();

@@ -2,11 +2,15 @@ import "./Cart.css";
 import toast from "react-hot-toast";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { updateCartThunk, removeCartThunk } from "../../features/cart/cartThunk";
+import { updateCartThunk, removeCartThunk, getCartThunk } from "../../features/cart/cartThunk";
 import { applyCouponThunk, } from "../../features/coupon/couponThunk"; 
 import { clearCoupon } from "../../features/coupon/couponSlice";
+import { checkoutThunk, verifyPaymentThunk } from "../../features/orders/orderThunk";
+import { clearCart } from "../../features/cart/cartSlice";
+import { useNavigate } from "react-router-dom";
 
 const Cart = () => {
+  const navigate = useNavigate();
   const { cartItems, subtotal, totalItems, } = useSelector(
     (state) => state.cart
   );
@@ -19,7 +23,6 @@ const Cart = () => {
   const tax = coupon?.tax ?? subtotal * 0.05;
   const shipping = coupon?.shipping ?? (cartItems.length > 0 ? 100 : 0);
   const total = subtotal + shipping + tax;
-
   const resetCoupon = () => {
     dispatch(clearCoupon());
     setAppliedCoupon("");
@@ -70,7 +73,6 @@ const Cart = () => {
       ;
     }
     const result = await dispatch(applyCouponThunk(couponCode));
-    
     if (result.success) {
       setAppliedCoupon(couponCode);
       toast.success("Coupon Applied");
@@ -83,14 +85,10 @@ const Cart = () => {
   return (
     <div className="cart-page">
       <div className="cart-items">
-        <h1>
-          Shopping Cart
-        </h1>
+        <h1> Shopping Cart </h1>
         {
           cartItems.length === 0 ? ( 
-            <h3>
-              Cart is Empty
-            </h3>
+            <h3> Cart is Empty </h3>
           ) : (
             cartItems.map((item) => (
                 <div
@@ -118,7 +116,7 @@ const Cart = () => {
                     </button>
                   </div>
 
-                  <button   className="remove-btn"
+                  <button className="remove-btn"
                   onClick={()=> handleRemove(item.product._id )}
                   >
                     Remove
@@ -193,6 +191,11 @@ const Cart = () => {
         <button
           className="checkout-btn"
           disabled={ cartItems.length === 0 }
+          onClick={() => {
+            sessionStorage.setItem("couponCode", appliedCoupon || "");
+            navigate("/checkout")
+          }}
+
         >
           Proceed To Checkout
         </button>

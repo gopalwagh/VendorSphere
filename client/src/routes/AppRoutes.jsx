@@ -9,6 +9,8 @@ import Products from "../pages/Products/Products";
 import ProductDetails from "../pages/ProductDetails/ProductDetails";
 import Cart from "../pages/Cart/Cart";
 import Checkout from "../pages/Checkout/Checkout";
+import Orders from "../pages/Orders/Orders.jsx";
+import OrderDetails from "../pages/orderDetails/OrderDetails.jsx";
 import DashboardLayout from "../layouts/DashboardLayout";
 import ManageOrders from "../pages/Dashboard/ManageOrders/ManageOrders";
 import Coupons from "../pages/Dashboard/Coupons/Coupons";
@@ -27,14 +29,26 @@ const AppRoutes = () => {
         <Route path="/register" element={ <Register/> } />
         <Route path="/products" element={ <Products/> } />
         <Route path="/products/:productId" element={ <ProductDetails/> } />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/cart" element ={
+          <ProtectedRoute>
+            <Cart />
+          </ProtectedRoute>
+        } />
+        <Route path="/checkout" element={
+          <ProtectedRoute>
+            <Checkout />
+          </ProtectedRoute>} 
+        />
+        <Route path="/orders" element={
+          <ProtectedRoute>
+            <Orders />
+          </ProtectedRoute>
+        }/>
+        <Route path="/orders/:orderId" element={<OrderDetails />}/>
       </Route>
 
       {/* DashBoard Layout Routes  */}
-      <Route 
-        path="/dashboard" 
-        element={ 
+      <Route path="/dashboard" element={ 
           <ProtectedRoute roles={
             ["admin"]
           }>
