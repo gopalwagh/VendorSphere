@@ -12,11 +12,16 @@ import Order from "./order.model.js";
 import User from "../user/user.model.js";
 import emailQueue from "../../queues/email.queue.js";
 import generateInvoice from "../../services/generateInvoice.js";
+import Coupon from "../coupon/coupon.model.js";
+import calculateCartTotal from "../../utils/calculateCartTotal.js";
 
 const ORDER_STATUSES =
   Order.schema.path("orderStatus").enumValues;
 
 export const checkout = asyncHandler(async (req, res) => {
+
+  const { couponCode, shippingAddress } = req.body.checkoutData;
+  
   const cart = await Cart.findOne({
     user: req.user._id,
   }).populate("items.product");
@@ -24,10 +29,9 @@ export const checkout = asyncHandler(async (req, res) => {
   if (!cart || cart.items.length === 0) {
     throw new ApiError(400, "Cart is empty");
   }
-
-  let totalAmount = 0;
+  let subtotal = 0;
   const orderItems = [];
- 
+
   for (const item of cart.items) {
     if (!item.product) {
       throw new ApiError(400, "Cart contains an unavailable product");
@@ -40,34 +44,42 @@ export const checkout = asyncHandler(async (req, res) => {
       );
     }
 
-    totalAmount += item.product.price * item.quantity;
-
-    if (totalAmount > 500000) {
-      throw new ApiError(400, "Order amount exceeds Razorpay limit of ₹5,00,000");
-    }
-
+    subtotal += item.product.price * item.quantity;
+    
     orderItems.push({
       product: item.product._id,
       quantity: item.quantity,
       price: item.product.price,
     });
   }
+  
+  const { shipping, tax, discountPercent, discountAmount, finalAmount, } 
+    = await calculateCartTotal(subtotal,couponCode);
+
+  if(finalAmount > 500000){
+    throw new ApiError(400,"Order amount exceeds Razorpay limit of ₹5,00,000");
+  }
 
   let razorpayOrder;
   try {
     razorpayOrder = await razorpayInstance.orders.create({
-      amount: totalAmount * 100,
+      amount: Math.round(finalAmount * 100),
       currency: "INR",
     });
   } catch (err) {
-    console.error("Razorpay error:", err);
     throw new ApiError(500, "Failed to create Razorpay order");
   }
 
   const order = await Order.create({
     user: req.user._id,
     orderItems,
-    totalAmount,
+    subtotal,
+    shipping,
+    tax,
+    discountAmount,
+    totalAmount: finalAmount,
+    couponCode: couponCode || null,
+    shippingAddress,
     razorpayOrderId: razorpayOrder.id,
     orderTimeline: [
       {
@@ -76,6 +88,7 @@ export const checkout = asyncHandler(async (req, res) => {
       },
     ],
   });
+
   return res.status(200).json(
     new ApiResponse(
       200,
@@ -325,7 +338,10 @@ export const downloadInvoice = asyncHandler(async (req, res) => {
 
 export const trackOrder = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
-  const order = await Order.findById(orderId);
+  const order = await Order.findById(orderId).populate(
+    "orderItems.product",
+    "tittle images price"
+  );
 
   if (!order) {
     throw new ApiError(404, "Order not found");
@@ -345,6 +361,7 @@ export const trackOrder = asyncHandler(async (req, res) => {
     new ApiResponse(
       200,
       {
+        order,
         orderStatus: order.orderStatus,
         timeline: order.orderTimeline,
       },

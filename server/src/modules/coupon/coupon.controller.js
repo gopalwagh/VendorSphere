@@ -4,6 +4,7 @@ import Cart from "../cart/cart.model.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
+import calculateCartTotal from "../../utils/calculateCartTotal.js";
 
 export const createCoupon = asyncHandler(async (req, res) => {
   const {
@@ -51,22 +52,6 @@ export const applyCoupon = asyncHandler(async (req, res) => {
   if (!cart.items.length) {
     throw new ApiError(400, "Cart is empty");
   }
-  
-  const coupon = await Coupon.findOne({
-    code: couponCode.toUpperCase(),
-  });
-
-  if (!coupon) {
-    throw new ApiError(404, "Invalid coupon");
-  }
-
-  if (!coupon.isActive) {
-    throw new ApiError(400, "Coupon inactive");
-  }
-
-  if (new Date() > coupon.expiresAt) {
-    throw new ApiError(400, "Coupon expired");
-  }
 
   const subtotal = cart.items.reduce(
     (sum, item) =>
@@ -74,30 +59,19 @@ export const applyCoupon = asyncHandler(async (req, res) => {
     0
   );
 
-  const shipping = subtotal > 0 ? 100 : 0;
-  const tax = Number((subtotal * 0.05).toFixed(2));
-
-  if (subtotal < coupon.minimumAmount) {
-    throw new ApiError(
-      400,
-      `Minimum cart amount is Rs. ${coupon.minimumAmount}`
-    );
-  }
-
-  const discountAmount =
-    Number((subtotal * coupon.discountPercent) / 100).toFixed(2);
-  const grandTotal = Number(subtotal + shipping + tax - discountAmount).toFixed(2);
+  const { shipping, tax, discountPercent, discountAmount, finalAmount, } = await calculateCartTotal(subtotal,couponCode);
 
   return res.status(200).json(
     new ApiResponse(
       200,
       {
+        couponCode,
         subtotal,
         shipping,
         tax,
-        discountPercent: coupon.discountPercent,
+        discountPercent,
         discountAmount,
-        grandTotal,
+        grandTotal: finalAmount,
       },
       "Coupon applied"
     )

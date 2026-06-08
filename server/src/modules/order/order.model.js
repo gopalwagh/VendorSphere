@@ -32,6 +32,19 @@ const orderTimelineSchema = new mongoose.Schema(
   }
 );
 
+const shippingAddressSchema = new mongoose.Schema(
+  {
+    fullName: String,
+    phone: String,
+    addressLine1: String,
+    city: String,
+    state: String,
+    pincode: String,
+  },
+  {
+    _id: false,
+  }
+)
 const orderSchema = new mongoose.Schema(
   {
     user: {
@@ -53,6 +66,11 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    shipping: Number,
+    subtotal : Number,
+    tax: Number,
+    discountAmount: Number,
+    couponCode: String,
     paymentStatus: {
       type: String,
       enum: ["pending", "paid", "failed"],
@@ -63,6 +81,7 @@ const orderSchema = new mongoose.Schema(
       enum: ORDER_STATUSES,
       default: "pending",
     },
+    shippingAddress: shippingAddressSchema,
     message: String,
     orderTimeline: {
       type: [orderTimelineSchema],
