@@ -332,3 +332,17 @@ export const getProductReviews = asyncHandler(async(req,res) => {
     )
   );
 });
+
+export const getAdminProducts = asyncHandler(async (req,res) => {
+  const products = await Product.find({
+    createdBy: req.user._id,
+  }).sort({ createdAt: -1 });
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      products,
+      "Products fetched successfully"
+    )
+  )
+})
