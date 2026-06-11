@@ -48,8 +48,16 @@ export const checkout = asyncHandler(async (req, res) => {
     
     orderItems.push({
       product: item.product._id,
+      seller: item.product.createdBy,
       quantity: item.quantity,
       price: item.product.price,
+      itemStatus: "processing",
+      itemTimeline: [
+        {
+          status: "processing",
+          message: "Order item created",
+        }
+      ]
     });
   }
   
@@ -159,19 +167,27 @@ export const verifyPayment = asyncHandler(async (req, res) => {
 
   for (const item of order.orderItems) {
     const product = await Product.findById(item.product);
-
     if (!product) {
-      throw new ApiError(404, "Product not found for order item");
+      throw new ApiError(404,"Product not found for order item");
     }
 
     if (item.quantity > product.stock) {
-      throw new ApiError(
-        400,
-        `${product.title} no longer has enough stock`
-      );
+      throw new ApiError(400,`${product.title} no longer has enough stock`);
     }
 
+    const itemTotal = item.price * item.quantity;
+    const commissionAmount = (itemTotal * item.commissionPercent) / 100;
+
+    const sellerAmount = itemTotal - commissionAmount;
+
+    item.commissionAmount = commissionAmount;
+    item.sellerAmount = sellerAmount;
     product.stock -= item.quantity;
+    
+    item.itemTimeline.push({
+      status: "processing",
+      message: "Payment verified",
+    })
     await product.save();
   }
 
@@ -288,11 +304,71 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Order not found");
   }
 
-  order.orderStatus = status;
-  order.orderTimeline.push({
-    status,
-    message: message || `Order moved to ${status}`,
-  });
+  if(order.paymentStatus !== "paid"){
+    throw new ApiError(
+        400,
+        "Cannot update unpaid order"
+    );
+  }
+  
+  const priority = [ "pending", "processing", "packed", "shipped", "out_for_delivery", "delivered" ];
+
+  const previousStatus = order.orderStatus;
+
+  let sellerFound = false;
+  for (const item of order.orderItems) {
+    if (item.seller.toString() ===req.user._id.toString()) {
+      sellerFound = true;
+
+      const currentIndex = priority.indexOf(item.itemStatus);
+      const newIndex = priority.indexOf(status);
+
+      if (newIndex < currentIndex) {
+        throw new ApiError(
+          400,
+          "Cannot move order backward"
+        );
+      }
+      if (newIndex === currentIndex) {
+        throw new ApiError(
+          400,
+          `Order already ${status}`
+        );
+      }
+
+      item.itemStatus = status;
+
+      item.itemTimeline.push({
+        status,
+        message:
+          message || `Item moved to ${status}`,
+      });
+    }
+  }
+
+  if (!sellerFound) {
+    throw new ApiError(
+      403,
+      "You cannot update this order"
+    );
+  }
+
+  const statuses = order.orderItems.map(item => item.itemStatus);
+
+  const indexes = statuses.map(
+    status => priority.indexOf(status)
+  );
+
+  const minIndex = Math.min(...indexes);
+
+  order.orderStatus = priority[minIndex];
+
+  if(previousStatus !== order.orderStatus){
+    order.orderTimeline.push({
+      status: order.orderStatus,
+      message: `Order moved to ${order.orderStatus}`
+    });
+  }
 
   await order.save();
 
@@ -369,3 +445,44 @@ export const trackOrder = asyncHandler(async (req, res) => {
     )
   );
 });
+
+export const getAdminOrders = asyncHandler(async(req, res) => {
+  const orders = await Order.find({
+    "orderItems.seller": req.user._id,
+  })
+  .populate("user", "name email")
+  .populate("orderItems.product", "title price images stock")
+  .sort({ createdAt: -1, });
+
+  const adminOrders = orders.map((order) => {
+    const sellerItems = order.orderItems
+      .filter((item) => item.seller.toString() === req.user._id.toString());
+
+    const sellerRevenue = sellerItems.reduce((sum, item) =>
+      sum + item.price * item.quantity, 0); 
+
+    const sellerEarnings = sellerItems.reduce((sum, item) => sum + item.sellerAmount,0);
+
+    return {
+      _id: order._id,
+      customer: order.user,
+      orderStatus: order.orderStatus,
+      paymentStatus: order.paymentStatus,
+      shippingAddress: order.shippingAddress,
+      orderTimeline: order.orderTimeline,
+      createdAt: order.createdAt,
+      sellerEarnings,
+      sellerRevenue,
+      orderItems: sellerItems,
+    };
+  });
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      adminOrders,
+      "Admin orders fetched successfully"
+    )
+  )
+})
+

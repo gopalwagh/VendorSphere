@@ -58,9 +58,35 @@ const orderSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "Product",
         },
+        seller: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
         quantity: Number,
         price: Number,
-      },
+        commissionPercent: {
+          type: Number,
+          default: 10,
+        },
+        commissionAmount: {
+          type: Number,
+          default: 0,
+        },
+        sellerAmount: {
+          type:Number,
+          default: 0,
+        },
+        itemStatus: {
+          type: String,
+          enum: ORDER_STATUSES,
+          default: "processing",
+        },
+
+        itemTimeline: {
+          type: [orderTimelineSchema],
+          default: [],
+        },
+      }
     ],
     totalAmount: {
       type: Number,
