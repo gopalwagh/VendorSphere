@@ -1,6 +1,7 @@
-import { getAllProducts, getProductById } from "../../api/productApi";
+import { createAsyncThunk } from "@reduxjs/toolkit";
+import { getAdminProductApi, getAllProducts, getProductById, updateProductApi, createProductApi, deleteProductApi } from "../../api/productApi";
 
-import { setProduct, setError, setLoading, setSelectedProduct } from "./productSlice";
+import { setProduct, setError, setLoading, setSelectedProduct, setAdminProducts, } from "./productSlice";
 
 export const fetchProducts = (filters) => {
   return async (dispatch) => {
@@ -33,10 +34,103 @@ export const fetchProductDetails = (productId) => {
       dispatch(setSelectedProduct(response.data.data));
     } catch (error) {
       dispatch(setError
-        (setLoading(false))
+        (error.response?.data?.message)
       );
     } finally {
       dispatch(setLoading(false));
     }
   };
 };
+
+export const fetchAdminProductsThunk = () => {
+  return async (dispatch) => {
+    try {
+      dispatch(setLoading(true));
+      
+      const response = 
+      await getAdminProductApi();
+      // data comes in response.data
+      dispatch(setAdminProducts(response.data));
+
+    } catch( error ){
+      dispatch(
+        setError(
+          error.response?.data?.message
+        )
+      );
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+};
+
+export const createProductThunk = (formData) => {
+  return async (dispatch) => {
+    try {
+      dispatch(setLoading(true));
+
+      const response = await createProductApi(formData);
+
+      return {
+        success: true,
+        data: response.data,
+      }
+
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message,
+      };
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+};
+
+export const updateProductThunk = (productId, formData) => {
+  return async (dispatch) => {
+    try{ 
+      dispatch(setLoading(true));
+      const response = await updateProductApi( productId, formData );
+      console.log(response.data.data)
+
+      return {
+        success: true,
+        data: response.data.data,
+      }
+
+    } catch(error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message,
+      };
+
+    } finally {
+      setLoading(false);
+    }
+  };
+};
+
+export const deleteProductThunk = (productId) => {
+  return async(dispatch) =>{
+    try {
+      dispatch(setLoading(true));
+      const response = await deleteProductApi(productId);
+
+      return {
+        success: true,
+        message: response.message,
+      }
+    } catch(error) {
+      return {
+        success: false,
+        message:
+          error.response?.data?.message ||
+          "Failed to delete product",
+      };
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }
+}

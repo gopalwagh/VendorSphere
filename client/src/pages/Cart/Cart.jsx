@@ -88,7 +88,18 @@ const Cart = () => {
         <h1> Shopping Cart </h1>
         {
           cartItems.length === 0 ? ( 
-            <h3> Cart is Empty </h3>
+            <div className="empty-cart">
+              <div className="empty-box">
+                <h2>Your Cart is Empty</h2>
+                <p>Looks like you haven't added anything yet.</p>
+
+                <button
+                  onClick={() => navigate("/products")}
+                  className="shop-btn">
+                  OK, Go Shopping
+                </button>
+              </div>
+            </div>
           ) : (
             cartItems.map((item) => (
                 <div

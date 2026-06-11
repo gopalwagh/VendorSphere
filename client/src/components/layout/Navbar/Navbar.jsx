@@ -1,6 +1,6 @@
 import "./Navbar.css";
 import { Link, useNavigate } from "react-router-dom";
-import { FaHome, FaStore, FaShoppingCart, FaHeart, FaUser, FaSearch, FaBars,  FaClipboardList, FaUserCircle, FaRegUser } from "react-icons/fa";
+import { FaHome, FaStore, FaShoppingCart, FaHeart, FaUser, FaSearch, FaBars,  FaClipboardList, FaUserCircle, FaRegUser, FaTimes } from "react-icons/fa";
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { logoutThunk } from "../../../features/auth/authThunk";
@@ -155,7 +155,7 @@ const Navbar = () => {
                   onClick={() =>
                     setMenuOpen(false)
                   }>
-                  Cart <FaClipboardList />
+                  Orders <FaClipboardList />
                 </Link>
                 <p>
                   <FaUser />

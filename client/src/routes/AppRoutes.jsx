@@ -19,6 +19,7 @@ import ManageProducts from "../pages/Dashboard/ManageProducts/ManageProducts"
 import Analytics from "../pages/Dashboard/Analytics/Analytics";
 import ProtectedRoute from "./ProtectedRoute.jsx"
 import NotFound from "../pages/NotFound/NotFound.jsx";
+import CreateProduct from "../pages/Dashboard/CreateProduct/CreateProduct.jsx";
 
 const AppRoutes = () => {
   return (
@@ -58,9 +59,16 @@ const AppRoutes = () => {
       >
         <Route index element={<DashboardHome />} />
         <Route path="products" element={<ManageProducts />} />
-        <Route path="orders"   element={<ManageOrders />} />
+        <Route path="products/edit/:productId" element={<CreateProduct />} />
+        <Route path="products/create" element={<CreateProduct />} />
+        <Route path="orders" element={<ManageOrders />} />
         <Route path="analytics" element={<Analytics />} />
-        <Route path="coupons" element={<Coupons />} />
+      </Route>
+
+      <Route element={<DashboardLayout />} > 
+        <Route path="/super_admin" element = {<DashboardHome />} /> 
+        <Route path="/orders" element= {<ManageOrders />} />
+        <Route path="/coupons" element={<Coupons />} />
       </Route>
 
       {/* Catch-all NotFound */}

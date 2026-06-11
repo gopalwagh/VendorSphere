@@ -1,26 +1,177 @@
+.dashboard-home {
+  padding: 20px;
+}
+
+.dashboard-home h1 {
+  margin-bottom: 25px;
+}
+
 .stats-grid {
   display: grid;
-  grid-template-columns:
-    repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 20px;
-  margin-top: 30px;
 }
 
 .stat-card {
   background: white;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow:
-    0 2px 10px rgba(0, 0, 0, 0.08);
-  min-height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: 600;
-  transition: 0.3s;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.08);
 }
 
-.stat-card:hover {
-  transform: translateY(-5px);
+.stat-card h3 {
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.stat-card p {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.recent-orders{
+  margin-top:30px;
+  background:#fff;
+  padding:24px;
+  border-radius:16px;
+  box-shadow:0 2px 10px rgba(0,0,0,.08);
+}
+
+.section-header{
+  margin-bottom:20px;
+}
+
+.recent-orders table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+.recent-orders th,
+.recent-orders td{
+  text-align:left;
+  padding:12px;
+  border-bottom:1px solid #eee;
+}
+
+.recent-orders th{
+  background:#fafafa;
+}
+
+.dashboard-bottom{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:20px;
+  margin-top:20px;
+}
+
+.top-products,
+.status-summary{
+  background:#fff;
+  border-radius:12px;
+  padding:20px;
+  min-height:350px;   /* same height */
+}
+
+.product-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px 0;
+  border-bottom:1px solid #eee;
+}
+
+.status-item{
+  display:flex;
+  justify-content:space-between;
+  padding:15px 0;
+  border-bottom:1px solid #eee;
+}
+
+.inventory-section{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  margin-top:20px;
+}
+
+.inventory-card{
+  background:#fff;
+  border-radius:12px;
+  padding:20px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+  min-height:350px;
+}
+
+.inventory-card h2{
+  margin-bottom:20px;
+}
+
+.inventory-product{
+  display:flex;
+  align-items:center;
+  gap:15px;
+  padding:15px 0;
+  border-bottom:1px solid #eee;
+}
+
+.inventory-image{
+  width:60px;
+  height:60px;
+  object-fit:cover;
+  border-radius:8px;
+  flex-shrink:0;
+}
+
+.inventory-info{
+  flex:1;
+}
+
+.inventory-info h4{
+  margin:0;
+  font-size:15px;
+}
+
+.inventory-info p{
+  margin-top:5px;
+  color:#666;
+}
+
+.warning-stock{
+  color:#f59e0b;
+  font-weight:700;
+}
+
+.danger-stock{
+  color:#ef4444;
+  font-weight:700;
+}
+
+.inventory-btn{
+  border:none;
+  background:#2563eb;
+  color:white;
+  padding:8px 14px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:13px;
+}
+
+.inventory-btn:hover{
+  opacity:.9;
+}
+
+.restock{
+  background:#16a34a;
+}
+
+@media (max-width: 900px) {
+  .stats-grid {
+    grid-template-columns: repeat(2,1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }

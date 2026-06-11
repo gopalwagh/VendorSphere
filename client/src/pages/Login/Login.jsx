@@ -25,9 +25,14 @@ const Login = () => {
     const result = await dispatch(
       loginThunk({ email,password, })
     );
+    
     if (result.success) {
       toast.success("Login Successful");
-      navigate("/");
+      if (result.role === "admin") {
+        navigate("/dashboard")
+      } else {
+        navigate("/");
+      }
     } else {
       toast.error(result.message);
     }
@@ -60,6 +65,12 @@ const Login = () => {
             loading ? "Logging In..." : "Login"
           }
         </button>
+        <p className="auth-link">
+          Don't have an account?{" "}
+          <span onClick={() => navigate("/register")}>
+            Sign up
+          </span>
+        </p>
       </form>
     </div>
   )

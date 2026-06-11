@@ -112,6 +112,47 @@
   background: #333;
 }
 
+.empty-cart {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60vh;
+}
+
+.empty-box {
+  text-align: center;
+  padding: 40px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.empty-box h2 {
+  margin-bottom: 10px;
+  font-size: 24px;
+}
+
+.empty-box p {
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.shop-btn {
+  padding: 10px 20px;
+  border: none;
+  background: #111;
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.shop-btn:hover {
+  background: #333;
+}
+
 @media (max-width: 768px) {
   .cart-page {
     flex-direction: column;

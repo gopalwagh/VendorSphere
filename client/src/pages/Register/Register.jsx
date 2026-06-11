@@ -14,14 +14,20 @@ const Register = () => {
   const [name,setName] = useState("");
   const [email,setEmail] = useState("");
   const [password,setPassword] = useState("");
+  const [confirmPassword,setConfirmPassword] = useState("");
 
   const handleSubmit = async(e) => {
     e.preventDefault();
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !confirmPassword) {
       toast.error("All fields are required");
       return;
     }
 
+    if(password !== confirmPassword) {
+      toast.error("Password not same")
+      return;
+    }
+    
     const result = await dispatch(
       registerThunk({
         name,
@@ -61,11 +67,23 @@ const Register = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+        <input
+          type="password"
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
         <button disabled={loading}>
           {
             loading ? "Please Wait...":"Register"
           }
         </button>
+        <p className="auth-link">
+          Already have an account?
+          <span onClick={() => navigate("/login")}>
+            Login
+          </span>
+        </p>
       </form>
     </div>
   );

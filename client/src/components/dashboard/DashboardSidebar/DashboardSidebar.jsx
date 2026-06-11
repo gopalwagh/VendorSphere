@@ -11,14 +11,14 @@ const DashboardSidebar = () => {
       <Link to="/dashboard/products">
         Products
       </Link>
+      <Link to="/dashboard/products/create">
+        Create
+      </Link>
       <Link to="/dashboard/orders">
         Orders
       </Link>
       <Link to="/dashboard/analytics">
         Analytics
-      </Link>
-      <Link to="/dashboard/coupons">
-        Coupons
       </Link>
     </aside>
   );

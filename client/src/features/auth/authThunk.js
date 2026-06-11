@@ -30,6 +30,7 @@ export const loginThunk = (credentials) => {
 
       return {
         success: true,
+        role: response.data.data.user.role,
       };
 
     } catch(error) {

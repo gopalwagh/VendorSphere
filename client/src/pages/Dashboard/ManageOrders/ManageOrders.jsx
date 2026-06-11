@@ -1,37 +1,99 @@
 import "./ManageOrders.css";
-import DataTable from "../../../components/dashboard/DataTable/DataTable";
+import toast from "react-hot-toast";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import Loader from "../../../components/common/Loader/Loader";
+import { fetchAllOrdersThunk,updateOrderStatusThunk, fetchAdminOrdersThunk } from "../../../features/orders/orderThunk";
 
 const ManageOrders = () => {
-  const columns = [
-    "Order ID",
-    "Customer",
-    "Amount",
-    "Status",
-  ];
+  const dispatch = useDispatch();
+  
+  const { adminOrders, loading} = useSelector((state) => state.orders);
 
-  const data = [
-    {
-      "Order ID": "#ORD123",
-      Customer: "Gopal",
-      Amount: "₹2999",
-      Status: "Delivered",
-    },
-    {
-      "Order ID": "#ORD124",
-      Customer: "Rahul",
-      Amount: "₹1999",
-      Status: "Pending",
-    },
-  ];
+  console.log(adminOrders[0]);
+  useEffect(() => {
+    dispatch(fetchAdminOrdersThunk());
+  }, [dispatch])
+
+  if (loading) return < Loader />
+
+  const handleStatusUpdate = async( orderId, status) => {
+    const result = await dispatch(updateOrderStatusThunk( orderId,status ));
+
+    if (result.status) {
+      toast.success("Order Updated");
+      dispatch(fetchAdminOrdersThunk());
+    } else {
+      toast.error(result.message);
+    }
+  };
 
   return (
     <div className="manage-orders">
       <h1>Manage Orders</h1>
-      <div className="table-wrapper">
-        <DataTable
-          columns={columns}
-          data={data}
-        />
+      <div className="orders-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Amount</th>
+              <th>Earning</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {adminOrders?.map((order) => (
+              <tr key={order._id}>
+                <td>
+                  #{order._id.slice(-6)}
+                </td>
+                <td> {order.customer?.name} </td>
+                <td> ₹{order.sellerRevenue} </td>
+                <td> ₹{order.sellerEarnings} </td>
+                <td> {order.paymentStatus} </td>
+                <td>
+                  <select
+                    value={order.orderItems?.[0]?.itemStatus}
+                    onChange={(e)=>
+                      handleStatusUpdate(
+                        order._id,e.target.value
+                      )
+                    }
+                  >
+                    <option value="processing">
+                      Processing
+                    </option>
+                    <option value="packed">
+                      Packed
+                    </option>
+                    <option value="shipped">
+                      Shipped
+                    </option>
+                    <option value="out_for_delivery">
+                      Out For Delivery
+                    </option>
+                    <option value="delivered">
+                      Delivered
+                    </option>
+                    <option value="cancelled">
+                      Cancelled
+                    </option>
+                  </select>
+                </td>
+                <td>
+                  {new Date(
+                    order.createdAt
+                  ).toLocaleDateString()}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+
+        </table>
       </div>
     </div>
   );

@@ -17,3 +17,22 @@ export const getOrderDetailsApi = async(orderId) => {
   );
   return response.data;
 }
+
+export const getAllOrdersApi = async () => {
+  const response = await axiosInstance.get("/orders/admin/all-orders");
+
+  return response.data.data;
+}
+
+export const updateOrderStatusApi = async (orderId, status) => {
+  const response = await axiosInstance.patch(
+    `/orders/admin/update-status/${orderId}`, 
+    { status }
+  );
+  return response.data;
+}
+
+export const getAdminOrdersApi = async() => {
+  const response = await axiosInstance.get("/orders/admin/my-orders");
+  return response;
+}

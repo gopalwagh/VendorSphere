@@ -1,6 +1,7 @@
-import { checkoutApi, verifyPaymentApi } from "../../api/orderApi";
+import { checkoutApi, verifyPaymentApi,getAllOrdersApi, updateOrderStatusApi, getOrderDetailsApi, getAdminOrdersApi, } from "../../api/orderApi";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../../api/axios";
+import { setLoading, setAdminOrders, setDashboard } from "./orderSlice";
 
 export const checkoutThunk = (checkoutData) => {
   return async () => {
@@ -50,3 +51,78 @@ export const fetchMyOrdersThunk = createAsyncThunk("orders/fetchMyOrders",
     }
 });
 
+export const fetchAllOrdersThunk = () => {
+  return async (dispatch) => {
+    try {
+      dispatch(setLoading(true));
+
+      const orders = await getAllOrdersApi();
+      dispatch(
+        setAdminOrders(orders)
+      );
+
+      return {
+        success: true,
+        data: orders,
+      }
+
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message,
+      };
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+};
+
+export const updateOrderStatusThunk = ( orderId, status ) => {
+  return async (dispatch) => {
+    try {
+      dispatch(setLoading(true));
+
+      const response = await updateOrderStatusApi( orderId, status );
+
+      return {
+        status: true,
+        data: response.data,
+      }
+    } catch( error ){
+      console.log("Error",error)
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to update order",
+      };
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+};
+
+export const fetchAdminOrdersThunk = () => {
+  return async (dispatch) => {
+    try {
+      dispatch(setLoading(true));
+      const response = await getAdminOrdersApi();
+
+      dispatch(
+        setAdminOrders(response.data.data)
+      );
+
+      return {
+        success: true,
+        data: response.data.data,
+      }
+    }catch(error){
+      console.log("Error: ",error);
+      return {
+        success: false,
+        message:
+          error.response?.data?.message,
+      };
+    } finally {
+      dispatch(setLoading(false));
+    }
+  }
+}
