@@ -1,4 +1,4 @@
-import { logout, setUser, setLoading } from "./authSlice";
+import { setLogout, setUser, setLoading, setError, setFetchedUser } from "./authSlice";
 import { loginUser, getCurrentUser, registerUser, logoutUser } from "../../api/authApi";
 
 export const checkAuth = () => {
@@ -9,9 +9,9 @@ export const checkAuth = () => {
       const response = await getCurrentUser();
 
       dispatch(setUser(response.data.data.user));
-      
+      dispatch(setFetchedUser(true));
     } catch (error) {
-      dispatch(logout);
+      dispatch(setLogout());
     } finally {
       dispatch(setLoading(false))
     }
@@ -25,16 +25,15 @@ export const loginThunk = (credentials) => {
       await loginUser(credentials);
       
       const response = await getCurrentUser();
-      
       dispatch(setUser(response.data.data.user));
-
+      dispatch(setFetchedUser(true))
       return {
         success: true,
         role: response.data.data.user.role,
       };
 
     } catch(error) {
-      dispatch(logout());
+      dispatch(setLogout());
       return {
         success: false,
         message : error.response?.data?.message
@@ -70,7 +69,7 @@ export const logoutThunk = () => {
     try {
       dispatch(setLoading(true));
       await logoutUser();
-      dispatch(logout());
+      dispatch(setLogout());
       return {
         success: true,
       };

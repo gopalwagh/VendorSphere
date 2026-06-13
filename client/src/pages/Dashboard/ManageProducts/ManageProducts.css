@@ -1,61 +1,87 @@
-.manage-products{
-  padding:30px;
+/* ManageProducts.css */
+
+.manage-products {
+  padding: 25px;
+  background: #f4f6f9;
+  min-height: 100vh;
+  font-family: 'Poppins', sans-serif;
 }
 
-.manage-products h2{
-  margin-bottom:20px;
+.manage-products h2 {
+  font-size: 1.8rem;
+  margin-bottom: 25px;
+  color: #2a2a2a;
+  font-weight: 700;
+  text-align: center;
 }
 
-.manage-products table{
-  width:100%;
-  border-collapse:collapse;
-  background:#fff;
-  border-radius:12px;
-  overflow:hidden;
+/* Table */
+.manage-products table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
 }
 
 .manage-products th,
-.manage-products td{
-  padding:15px;
-  border-bottom:1px solid #eee;
-  text-align:left;
+.manage-products td {
+  padding: 10px 10px;
+  text-align: center;
+  border-bottom: 1px solid #eee;
+  font-size: 0.95rem;
 }
 
-.manage-products img{
-  width:70px;
-  height:70px;
-  object-fit:cover;
-  border-radius:8px;
+.manage-products th {
+  background: #f9fafc;
+  font-weight: 600;
+  color: #444;
 }
 
-td .edit-btn,
-td .delete-btn{
-  border:none;
-  padding:8px 14px;
-  border-radius:8px;
-  cursor:pointer;
-  font-size:14px;
-  font-weight:600;
-  transition:all .25s ease;
-  margin-right:8px;
+.manage-products tr:hover {
+  background: #f1f5ff;
+  transition: background 0.2s ease;
 }
 
-.edit-btn{
-  background:#2563eb;
-  color:#fff;
+/* Product Image */
+.manage-products td img {
+  width: 70px;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #ddd;
 }
 
-.edit-btn:hover{
-  background:#1d4ed8;
-  transform:translateY(-2px);
+/* Buttons */
+.edit-btn,
+.delete-btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 8px;
+  transition: background 0.3s ease, transform 0.2s ease;
 }
 
-.delete-btn{
-  background:#dc2626;
-  color:#fff;
+.edit-btn {
+  background: #2a5298;
+  color: #fff;
 }
 
-.delete-btn:hover{
-  background:#b91c1c;
-  transform:translateY(-2px);
+.edit-btn:hover {
+  background: #1e3c72;
+  transform: translateY(-2px);
+}
+
+.delete-btn {
+  background: #e74c3c;
+  color: #fff;
+}
+
+.delete-btn:hover {
+  background: #c0392b;
+  transform: translateY(-2px);
 }

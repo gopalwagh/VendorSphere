@@ -20,7 +20,7 @@ const Cart = () => {
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState("");
 
-  const tax = coupon?.tax ?? subtotal * 0.05;
+  const tax = parseFloat((coupon?.tax ?? subtotal * 0.05).toFixed(2));
   const shipping = coupon?.shipping ?? (cartItems.length > 0 ? 100 : 0);
   const total = subtotal + shipping + tax;
   const resetCoupon = () => {
@@ -101,7 +101,9 @@ const Cart = () => {
               </div>
             </div>
           ) : (
-            cartItems.map((item) => (
+            cartItems
+              .filter((item) => item.product)
+              .map((item) => (
                 <div
                   key={ item.product._id }
                   className="cart-item"

@@ -15,10 +15,11 @@ const Register = () => {
   const [email,setEmail] = useState("");
   const [password,setPassword] = useState("");
   const [confirmPassword,setConfirmPassword] = useState("");
+  const [role, setRole] = useState("");
 
   const handleSubmit = async(e) => {
     e.preventDefault();
-    if (!name || !email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword || !role ) {
       toast.error("All fields are required");
       return;
     }
@@ -32,6 +33,7 @@ const Register = () => {
       registerThunk({
         name,
         email,
+        role,
         password,
       })
     );
@@ -73,6 +75,24 @@ const Register = () => {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
+        {/* ROLE SELECTOR */}
+        <div className="role-toggle">
+          <button
+            type="button"
+            className={role === "user" ? "active" : ""}
+            onClick={() => setRole("user")}
+          >
+            User
+          </button>
+
+          <button
+            type="button"
+            className={role === "admin" ? "active" : ""}
+            onClick={() => setRole("admin")}
+          >
+            Admin
+          </button>
+        </div>
         <button disabled={loading}>
           {
             loading ? "Please Wait...":"Register"

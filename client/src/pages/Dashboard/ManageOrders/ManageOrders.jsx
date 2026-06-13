@@ -12,8 +12,10 @@ const ManageOrders = () => {
 
   console.log(adminOrders[0]);
   useEffect(() => {
-    dispatch(fetchAdminOrdersThunk());
-  }, [dispatch])
+    if(!adminOrders){
+      dispatch(fetchAdminOrdersThunk());
+    }
+  }, [dispatch,adminOrders])
 
   if (loading) return < Loader />
 
@@ -54,7 +56,13 @@ const ManageOrders = () => {
                 <td> {order.customer?.name} </td>
                 <td> ₹{order.sellerRevenue} </td>
                 <td> ₹{order.sellerEarnings} </td>
-                <td> {order.paymentStatus} </td>
+                <td> {
+                  order.paymentStatus === "paid" ? (
+                    <span style={{ color: "green", fontWeight: "600" }}>Paid</span>
+                  ) : (
+                    <span style={{ color: "red", fontWeight: "600" }}>Unpaid</span>
+                  )}               
+                </td>
                 <td>
                   <select
                     value={order.orderItems?.[0]?.itemStatus}

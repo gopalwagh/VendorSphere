@@ -3,14 +3,15 @@ import toast from "react-hot-toast";
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProductDetails,createProductThunk, updateProductThunk } from "../../../features/products/productThunk";
+import { fetchProductDetails,fetchAdminProductsThunk, createProductThunk, updateProductThunk } from "../../../features/products/productThunk";
 import Loader from "../../../components/common/Loader/Loader";
 
 const CreateProduct = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const {productId} = useParams();
+  const { productId } = useParams();
+  const { loading } = useSelector((state => state.product))
   const isEditMode = Boolean(productId);
 
   useEffect(() => {
@@ -60,6 +61,9 @@ const CreateProduct = () => {
     }
     
     if(result.success){
+      await dispatch(
+        fetchAdminProductsThunk()
+      );
       toast.success(isEditMode
         ? "Product Updated"
         : "Product Created"
@@ -71,7 +75,7 @@ const CreateProduct = () => {
     }
   }
 
-  if( loader ){ 
+  if( loading ){ 
     return <Loader />
   }
 

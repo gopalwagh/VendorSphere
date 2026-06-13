@@ -3,7 +3,7 @@ import axiosInstance from "./axios";
 
 export const addToCartApi = (productId, quantity) => {
   return axiosInstance.post(
-    "/cart/add", {
+    "/cart", {
       productId, quantity,
     }
   );
@@ -15,12 +15,12 @@ export const getCartApi = () => {
 
 export const updateCartApi = (productId, quantity) => {
   return axiosInstance.patch(
-    `/cart/update/${productId}`, { quantity, }
+    `/cart/${productId}`, { quantity, }
   );
 };
 
 export const removeCartApi = (productId) => {
   return axiosInstance.delete(
-    `/cart/remove/${productId}`
+    `/cart/${productId}`
   );
 };

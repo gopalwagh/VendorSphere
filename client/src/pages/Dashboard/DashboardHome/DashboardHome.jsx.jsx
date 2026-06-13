@@ -12,11 +12,17 @@ const DashboardHome = () => {
 
   const { adminOrders, loading } = useSelector(state => state.orders); 
   const { adminProducts } = useSelector((state) => state.product);
-  
+  console.log(adminOrders,adminProducts)
   useEffect(() => {
-    dispatch(fetchAdminOrdersThunk());
-    dispatch(fetchAdminProductsThunk());
-  }, [dispatch]);
+    if (!adminOrders?.length) {
+      dispatch(fetchAdminOrdersThunk());
+    }
+    if (!adminProducts?.length) {
+      dispatch(fetchAdminProductsThunk());
+    }
+  }, [
+    dispatch, adminOrders, adminProducts
+  ]);
 
   const lowStockProducts = adminProducts.filter(
     (product) => product.stock <= 5 && product.stock > 0 );
@@ -76,10 +82,12 @@ const DashboardHome = () => {
     });
 
     order.orderItems.forEach((item) => {
-      const productId = item.product._id;
+      if (!item.product) return;
+      const productId = item.product?._id || item._id;
+      if (!productId) return;
       if (!productMap[productId]) {
         productMap[productId] = {
-          title: item.product.title,
+          title: item.product?.title || item.productTitle,
           quantitySold: 0,
           revenue: 0,
         };
@@ -114,7 +122,7 @@ const DashboardHome = () => {
         <div className="stat-card">
           <h3>Commission paid</h3>
           <p>
-            {totalCommission}
+            {totalCommission.toFixed(2)}
           </p>
         </div>
 

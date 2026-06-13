@@ -29,7 +29,7 @@ const Checkout = () => {
   const discountPercent = coupon?.discountPercent ?? 0;
   const discountAmount = coupon?.discountAmount ?? 0;
   const shipping = coupon?.shipping ?? (cartItems.length > 0 ? 100 : 0);
-  const tax = coupon?.tax ?? (subtotal * 0.05);
+  const tax = parseFloat((coupon?.tax ?? (subtotal * 0.05)).toFixed(0));
   const grandTotal = coupon?.grandTotal ?? (subtotal + shipping + tax);
 
   const [address, setAddress] = useState({
@@ -95,15 +95,27 @@ const Checkout = () => {
       name: "ShopHub",
       description: "Order Payment",
 
-      handler: async function(response) {
+      handler: async function (response) {
+        console.log("RAZORPAY RESPONSE:", response);
+
+        if (
+          !response.razorpay_order_id ||
+          !response.razorpay_payment_id ||
+          !response.razorpay_signature
+        ) {
+          toast.error("Payment failed - invalid response");
+          return;
+        }
+
         const verifyResult = await dispatch(
           verifyPaymentThunk({
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature, 
+            razorpay_signature: response.razorpay_signature,
           })
         );
-        if( verifyResult.success ){
+
+        if (verifyResult.success) {
           dispatch(clearCart());
           dispatch(clearCoupon());
           await dispatch(getCartThunk());
@@ -111,11 +123,11 @@ const Checkout = () => {
           sessionStorage.removeItem("couponCode");
 
           toast.success("Payment Successful");
-          navigate("/orders")
+          navigate("/orders");
         } else {
-          toast.error( verifyResult.message);
+          toast.error(verifyResult.message);
         }
-      },
+      }
     };
     const razorpay = new window.Razorpay( options );
     razorpay.open();
@@ -187,7 +199,7 @@ const Checkout = () => {
         <h2>Order Summary</h2>
         {/* ITEMS */}
         <div className="items-list">
-          {cartItems.map((item) => (
+          {cartItems.filter((item) => item.product).map((item) => (
             <div className="item-row" key={item.product._id}>
               <img
                 src={item.product.images?.[0]?.url}

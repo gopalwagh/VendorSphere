@@ -1,5 +1,5 @@
 import "./ProductDetails.css";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate  } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { fetchProductDetails, } from "../../features/products/productThunk";
@@ -10,13 +10,14 @@ import toast from "react-hot-toast";
 const ProductDetails = () => {
   const { productId } = useParams();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { addToCart } = useAddToCart();
 
   const { selectedProduct, loading} = useSelector((state) => state.product);
   const { addToCartLoading, } = useSelector((state) => state.cart);
 
   const [quantity, setQuantity] = useState(1);
-
+  
   useEffect(() => {
     dispatch(fetchProductDetails(productId));
   },[dispatch, productId]);
@@ -98,7 +99,10 @@ const ProductDetails = () => {
             className="add-cart-btn"
             disabled= { addToCartLoading }
             onClick={
-              ()=> addToCart(selectedProduct,quantity) 
+              ()=> {
+                addToCart(selectedProduct,quantity) 
+                navigate("/cart")
+              }
             }
           >
             { 

@@ -4,10 +4,12 @@ import productReducer from "../features/products/productSlice";
 import cartReducer from "../features/cart/cartSlice";
 import couponReducer from "../features/coupon/couponSlice";
 import ordersReducer from "../features/orders/orderSlice";
+import adminReducer from "../features/admin/adminSlice";
 
 export const store = configureStore({
   reducer: {
     auth : authReducer,
+    admin: adminReducer,
     product : productReducer,
     cart : cartReducer,
     coupon: couponReducer,

@@ -6,7 +6,7 @@ import { loginThunk } from "../../features/auth/authThunk";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const { loading } = useSelector((state) => state.auth.loading);
+  const { loading, } = useSelector((state) => state.auth.loading);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

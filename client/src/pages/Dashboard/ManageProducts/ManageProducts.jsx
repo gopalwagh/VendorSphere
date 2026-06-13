@@ -10,13 +10,13 @@ const ManageProducts = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { adminProducts, loader } = useSelector((state) => state.product);
+  const { adminProducts, loading } = useSelector((state) => state.product);
   
   useEffect(() => {
-    dispatch(fetchAdminProductsThunk())
+      dispatch(fetchAdminProductsThunk())
   },[dispatch]);
-
-  if (loader) {
+ 
+  if (loading) {
     return (<Loader />) ;
   }
 
@@ -46,12 +46,13 @@ const ManageProducts = () => {
             <th>Category</th>
             <th>Price</th>
             <th>Stock</th>
+            <th>Total Reviews</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {
-            adminProducts.map(
+            adminProducts?.map(
               (product) => (
                 <tr
                   key={product._id}
@@ -75,6 +76,9 @@ const ManageProducts = () => {
                   </td>
                   <td>
                     {product.stock}
+                  </td>
+                  <td>
+                    {product.numOfReviews}
                   </td>
                   <td>
                     <button

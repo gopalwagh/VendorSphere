@@ -42,7 +42,7 @@ export const verifyPaymentThunk = ( paymentData ) => {
 };
 
 export const fetchMyOrdersThunk = createAsyncThunk("orders/fetchMyOrders",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, }) => {
     try {
       const res = await axiosInstance.get("/orders/my-orders");
       return res.data.data;

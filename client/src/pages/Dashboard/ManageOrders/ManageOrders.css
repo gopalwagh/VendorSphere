@@ -1,39 +1,91 @@
-.manage-orders{
-  padding:20px;
+/* ManageOrders.css */
+
+.manage-orders {
+  padding: 20px;
+  background: #f4f6f9;
+  min-height: 100vh;
+  font-family: 'Poppins', sans-serif;
 }
 
-.orders-table{
-  background:#fff;
-  border-radius:12px;
-  overflow:hidden;
-  box-shadow:0 2px 12px rgba(0,0,0,.08);
+.manage-orders h1 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: #333;
 }
 
-.orders-table table{
-  width:100%;
-  border-collapse:collapse;
+/* Orders Table */
+.orders-table {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  overflow-x: auto;
 }
 
-.orders-table select{
-  padding:8px 12px;
-  border:1px solid #ddd;
-  border-radius:8px;
-  cursor:pointer;
-  background:#fff;
+.orders-table table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.orders-table th{
-  background:#111;
-  color:#fff;
-  padding:16px;
-  text-align:left;
+.orders-table th,
+.orders-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #eee;
 }
 
-.orders-table td{
-  padding:16px;
-  border-bottom:1px solid #eee;
+.orders-table th {
+  background: #f9fafc;
+  font-weight: 600;
+  color: #444;
 }
 
-.orders-table tr:hover{
-  background:#f8f8f8;
+.orders-table tr:hover {
+  background: #f1f5ff;
+  transition: background 0.2s ease;
+}
+
+/* Order ID highlight */
+.orders-table td:first-child {
+  font-weight: bold;
+  color: #2a5298;
+}
+
+/* Payment Status Colors */
+.orders-table td:nth-child(5) {
+  font-weight: 600;
+}
+
+.orders-table td:nth-child(5):contains("paid") {
+  color: #27ae60;
+}
+
+.orders-table td:nth-child(5):contains("pending") {
+  color: #e67e22;
+}
+
+.orders-table td:nth-child(5):contains("failed"),
+.orders-table td:nth-child(5):contains("cancelled") {
+  color: #e74c3c;
+}
+
+/* Status Dropdown */
+.orders-table select {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border 0.2s ease;
+}
+
+.orders-table select:hover {
+  border-color: #2a5298;
+}
+
+/* Date Column */
+.orders-table td:last-child {
+  color: #555;
+  font-size: 0.9rem;
 }

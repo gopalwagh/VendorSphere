@@ -1,31 +1,37 @@
 import toast from "react-hot-toast";
 import { addToCartApi, getCartApi, updateCartApi, removeCartApi } from "../../api/cartApi";
-import { setAddToCartLoading, setCart, setLoading, } from "./cartSlice";
+import { setAddToCartLoading, setCart, setLoading, setFetchCart } from "./cartSlice";
 
 export const getCartThunk = () => {
-  return async(dispatch) => {
+  return async(dispatch, getState) => {
     try {
       dispatch(setLoading(true));
 
+      const user = getState().auth;
+
+      if (!user.isAuthenticated || user.user?.role === "admin") {
+        return;
+      }
+    
       const response = await getCartApi();
 
       dispatch(setCart(response.data.data));
       
     } finally {
       dispatch(setLoading(false));
-    }
-    
-  };
+    } 
+  }
 };
 
 export const addToCartThunk = (productId, quantity) => {
   return async(dispatch) => {
     try {
-      await addToCartApi(
+      const response = await addToCartApi(
         productId, quantity
       );
+      
+      dispatch(setCart(response.data.data));
 
-      dispatch(getCartThunk());
       dispatch(setAddToCartLoading(true));
 
       return { 
@@ -52,8 +58,9 @@ export const addToCartThunk = (productId, quantity) => {
 export const updateCartThunk = (productId, quantity) => {
   return async(dispatch) => {
     try {
-      await updateCartApi(productId,quantity);
-      dispatch(getCartThunk());
+      const response = await updateCartApi(productId,quantity);
+
+      dispatch(setCart(response.data.data));
 
     } catch (error) {
       toast.error(error.message);
@@ -64,8 +71,9 @@ export const updateCartThunk = (productId, quantity) => {
 export const removeCartThunk = (productId) => {
   return async(dispatch) => {
     try {
-      await removeCartApi(productId);
-      dispatch(getCartThunk());
+      const response = await removeCartApi(productId);
+
+      dispatch(setCart(response.data.data));
       
     } catch (error) {
       toast.error(error.message);      
