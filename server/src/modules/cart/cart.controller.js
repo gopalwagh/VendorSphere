@@ -1,9 +1,9 @@
 import Cart from "./cart.model.js";
 import Product from "../product/product.model.js";
-
 import asyncHandler from "../../utils/asyncHandler.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
+import { getPopulatedCartResponse } from "../../utils/buildCartResponse.js";
 
 export const addToCart = asyncHandler(async (req, res) => {
   const { productId, quantity } = req.body;
@@ -44,30 +44,32 @@ export const addToCart = asyncHandler(async (req, res) => {
 
   await cart.save();
 
+  const responseData = await getPopulatedCartResponse(cart._id);
+
   return res.status(200).json(
     new ApiResponse(
-      200, 
-      cart,
+      200,
+      responseData,
       "Product added to Cart"
     )
   );
 });
 
-export const getCart = asyncHandler(async(req,res) => {
+export const getCart = asyncHandler(async (req, res) => {
   const cart = await Cart.findOne({
-    user : req.user._id,
-  })
-  .populate({
-    path : "items.product",
-    select : "title price images stock category"
+    user: req.user._id,
+  }).populate({
+    path: "items.product",
+    select: "title price images stock category",
   });
-  if(!cart){
+
+  if (!cart) {
     return res.status(200).json(
       new ApiResponse(
         200,
         {
-          items : [],
-          summary : {
+          cart: { items: [] },
+          summary: {
             totalItems: 0,
             subtotal: 0,
           },
@@ -77,50 +79,40 @@ export const getCart = asyncHandler(async(req,res) => {
     );
   }
 
-  // calculate total ko
-  let subtotal = 0;
-  let totalItems = 0;
-
-  cart.items.forEach((item) => {
-    subtotal += item.product.price * item.quantity;
-    totalItems += item.quantity;
-  });
+  const responseData = await getPopulatedCartResponse(cart);
 
   return res.status(200).json(
     new ApiResponse(
       200,
-      {
-        cart,
-        summary : {
-          totalItems,
-          subtotal,
-        },
-      },
+      responseData,
       "Cart fetched successfully"
     )
   );
 });
 
-export const removeFromCart = asyncHandler(async(req, res) => {
+export const removeFromCart = asyncHandler(async (req, res) => {
   const { productId } = req.params;
+
   const cart = await Cart.findOne({
-    user : req.user._id,
+    user: req.user._id,
   });
-  
-  if(!cart){
-    throw new ApiError(404,"Cart not found");
+
+  if (!cart) {
+    throw new ApiError(404, "Cart not found");
   }
-  // remove item karna hai from cart se
+
   cart.items = cart.items.filter(
     (item) => item.product.toString() !== productId
   );
-  // new cart get saved succesfully 
+
   await cart.save();
+
+  const responseData = await getPopulatedCartResponse(cart._id);
 
   return res.status(200).json(
     new ApiResponse(
       200,
-      cart,
+      responseData,
       "Product removed from cart"
     )
   );
@@ -160,10 +152,12 @@ export const updateCartQuantity = asyncHandler(async(req, res) => {
   cartItem.quantity = quantity;
   await cart.save();
 
+  const responseData = await getPopulatedCartResponse(cart._id);
+
   return res.status(200).json(
     new ApiResponse(
       200,
-      cart,
+      responseData,
       "Cart quantity updated"
     )
   );

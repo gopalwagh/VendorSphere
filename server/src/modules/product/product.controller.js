@@ -1,11 +1,14 @@
 import Product from "./product.model.js";
 import Order from "../order/order.model.js";
+import Cart from "../cart/cart.model.js";
+
 import cloudinary from "../../config/cloudinary.js";
+import { redisClient } from "../../config/redis.js";
+
+import uploadToCloudinary from "../../utils/uploadToCloudinary.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
-import uploadToCloudinary from "../../utils/uploadToCloudinary.js";
-import { redisClient } from "../../config/redis.js";
 
 const invalidateProductCache = async () => {
   const keys = await redisClient.keys("products:*");
@@ -127,6 +130,17 @@ export const deleteProduct = asyncHandler(async (req, res) => {
   }
 
   await Product.findByIdAndDelete(productId);
+  
+  await Cart.updateMany(
+  {},
+  {
+    $pull: {
+      items: {
+        product: productId,
+      },
+    },
+  }
+);
   await invalidateProductCache();
 
   return res.status(200).json(

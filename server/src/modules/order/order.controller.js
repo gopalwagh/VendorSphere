@@ -26,9 +26,18 @@ export const checkout = asyncHandler(async (req, res) => {
     user: req.user._id,
   }).populate("items.product");
 
+    // deleted products remove
+  cart.items = cart.items.filter(
+    (item) => item.product
+  );
+
+  // cart update karo agar kuch remove hua
+  await cart.save();
+
   if (!cart || cart.items.length === 0) {
     throw new ApiError(400, "Cart is empty");
   }
+
   let subtotal = 0;
   const orderItems = [];
 
@@ -48,6 +57,9 @@ export const checkout = asyncHandler(async (req, res) => {
     
     orderItems.push({
       product: item.product._id,
+      productTitle: item.product.title,
+      productImage: item.product.images?.[0]?.url || "",
+      productCategory: item.product.category?.name || "",
       seller: item.product.createdBy,
       quantity: item.quantity,
       price: item.product.price,

@@ -8,9 +8,9 @@ import { generateAccessToken, generateRefreshToken } from "../../utils/generateT
 import { redisClient } from "../../config/redis.js"
 
 export const registerUser = asyncHandler(async (req ,res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
-  if(!name || !email || !password){
+  if(!name || !email || !password || !role){
     throw new ApiError(400, "All Fields are required");
   }
   const existingUser = await User.findOne({ email });
@@ -22,6 +22,7 @@ export const registerUser = asyncHandler(async (req ,res) => {
   const user = await User.create({
     name,
     email,
+    role,
     password : hashedpassword,
   });
 

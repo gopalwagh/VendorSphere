@@ -7,8 +7,8 @@ import { addToCart, getCart, removeFromCart, updateCartQuantity } from "./cart.c
 const router = express.Router();
 
 router.get("/", protect, getCart);
-router.post("/add", protect, addToCart);
-router.patch("/update/:productId", protect, updateCartQuantity);
-router.delete("/remove/:productId", protect, removeFromCart);
+router.post("/", protect, addToCart);
+router.patch("/:productId", protect, updateCartQuantity);
+router.delete("/:productId", protect, removeFromCart);
 
 export default router;
