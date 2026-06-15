@@ -1,9 +1,9 @@
 import "./ProductDetails.css";
-import { useParams, useNavigate  } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { fetchProductDetails, } from "../../features/products/productThunk";
-import Loader from "../../components/common/Loader/Loader";
+import { fetchProductDetails } from "../../features/products/productThunk";
+import Loader from "../../components/Loader/Loader";
 import useAddToCart from "../../hooks/useAddToCart";
 import toast from "react-hot-toast";
 
@@ -13,18 +13,43 @@ const ProductDetails = () => {
   const navigate = useNavigate();
   const { addToCart } = useAddToCart();
 
-  const { selectedProduct, loading} = useSelector((state) => state.product);
-  const { addToCartLoading, } = useSelector((state) => state.cart);
+  const { selectedProduct, loading, error } = useSelector((state) => state.product);
+  const { addToCartLoading } = useSelector((state) => state.cart);
 
   const [quantity, setQuantity] = useState(1);
-  
+
   useEffect(() => {
     dispatch(fetchProductDetails(productId));
-  },[dispatch, productId]);
+    setQuantity(1);
+  }, [dispatch, productId]);
 
-  if (loading || !selectedProduct) {
+  const handleAddToCart = async () => {
+    const result = await addToCart(selectedProduct, quantity);
+    if (result?.success) {
+      navigate("/cart");
+    }
+  };
+
+  if (loading) {
     return <Loader />;
   }
+
+  if (error || !selectedProduct) {
+    return (
+      <div className="product-details-container empty-product-state">
+        <div className="empty-product-card">
+          <span className="detail-eyebrow">Item unavailable</span>
+          <h1>We could not find this product.</h1>
+          <p>The item may have been removed or is no longer available.</p>
+          <Link to="/products" className="back-link">
+            Back to products
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const isOutOfStock = selectedProduct.stock <= 0;
 
   return (
     <div className="product-details-container">
@@ -37,81 +62,63 @@ const ProductDetails = () => {
         </div>
 
         <div className="product-info-section">
-          <h1 className="product-title">
-            {selectedProduct.title}
-          </h1>
-          <div className="product-price">
-            ₹{selectedProduct.price}
-          </div>
+          <span className="detail-eyebrow">{selectedProduct.category}</span>
+          <h1 className="product-title">{selectedProduct.title}</h1>
+          <div className="product-price">Rs. {selectedProduct.price}</div>
           <div className="product-rating">
-            ⭐ {selectedProduct.averageRating}
-            ({selectedProduct.numOfReviews} Reviews)
+            Rating {selectedProduct.averageRating} ({selectedProduct.numOfReviews} Reviews)
           </div>
-          <p className="product-description">
-            {selectedProduct.description}
-          </p>
+          <p className="product-description">{selectedProduct.description}</p>
 
           <div className="product-meta">
             <span>
-              <strong>Category:</strong>
-              {" "}
-              {selectedProduct.category}
-            </span>
-            <span>
-              <strong>Brand:</strong>
-              {" "}
-              {selectedProduct.brand}
+              <strong>Brand:</strong> {selectedProduct.brand}
             </span>
             <span
-              className={
-                selectedProduct.stock > 0 ? "in-stock" : "out-stock"
-              }
+              className={isOutOfStock ? "out-stock" : "in-stock"}
             >
-              {selectedProduct.stock > 0
-                ? `In Stock (${selectedProduct.stock})`
-                : "Out Of Stock"}
+              {isOutOfStock
+                ? "Out of stock"
+                : `In stock (${selectedProduct.stock})`}
             </span>
           </div>
 
           <div className="quantity-wrapper">
             <button
               className="quantity-btn"
-              onClick={() =>setQuantity(Math.max(1, quantity - 1))
-              }
-            > -
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              disabled={isOutOfStock}
+            >
+              -
             </button>
-            <span className="quantity-value">
-              {quantity}
-            </span>
+            <span className="quantity-value">{quantity}</span>
             <button
               className="quantity-btn"
-              onClick={() => 
-                {
-                  if (quantity < selectedProduct.stock){ setQuantity(quantity + 1);} 
-                  else {toast.error("⚠️ Stock limit reached!"); }
+              onClick={() => {
+                if (quantity < selectedProduct.stock) {
+                  setQuantity(quantity + 1);
+                } else {
+                  toast.error("Stock limit reached");
                 }
-              }
-            > +
+              }}
+              disabled={isOutOfStock}
+            >
+              +
             </button>
           </div>
 
-          <button 
+          <button
             className="add-cart-btn"
-            disabled= { addToCartLoading }
-            onClick={
-              ()=> {
-                addToCart(selectedProduct,quantity) 
-                navigate("/cart")
-              }
-            }
+            disabled={addToCartLoading || isOutOfStock}
+            onClick={handleAddToCart}
           >
-            { 
-              addToCartLoading ? "Adding..." : "Add To Cart"
-            }
+            {isOutOfStock
+              ? "Out Of Stock"
+              : addToCartLoading
+                ? "Adding..."
+                : "Add To Cart"}
           </button>
-
         </div>
-
       </div>
     </div>
   );

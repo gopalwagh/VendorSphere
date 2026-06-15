@@ -1,87 +1,69 @@
-/* ManageProducts.css */
-
 .manage-products {
-  padding: 25px;
-  background: #f4f6f9;
-  min-height: 100vh;
-  font-family: 'Poppins', sans-serif;
+  padding: 24px;
 }
 
-.manage-products h2 {
-  font-size: 1.8rem;
-  margin-bottom: 25px;
-  color: #2a2a2a;
-  font-weight: 700;
-  text-align: center;
+.manage-products .page-header h2 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 2.2rem;
 }
 
-/* Table */
 .manage-products table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
-  border-radius: 12px;
+  min-width: 920px;
   overflow: hidden;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  border-radius: 24px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow-md);
 }
 
 .manage-products th,
 .manage-products td {
-  padding: 10px 10px;
-  text-align: center;
-  border-bottom: 1px solid #eee;
-  font-size: 0.95rem;
+  padding: 16px 14px;
+  text-align: left;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 .manage-products th {
-  background: #f9fafc;
-  font-weight: 600;
-  color: #444;
+  color: var(--muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.manage-products tr:hover {
-  background: #f1f5ff;
-  transition: background 0.2s ease;
+.manage-products tbody tr:hover {
+  background: rgba(15, 118, 110, 0.04);
 }
 
-/* Product Image */
 .manage-products td img {
-  width: 70px;
-  height: 70px;
+  width: 68px;
+  height: 68px;
+  border-radius: 16px;
   object-fit: cover;
-  border-radius: 8px;
-  border: 1px solid #ddd;
 }
 
-/* Buttons */
 .edit-btn,
 .delete-btn {
-  padding: 8px 14px;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  margin-right: 8px;
-  transition: background 0.3s ease, transform 0.2s ease;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 999px;
+  font-weight: 700;
 }
 
 .edit-btn {
-  background: #2a5298;
-  color: #fff;
-}
-
-.edit-btn:hover {
-  background: #1e3c72;
-  transform: translateY(-2px);
+  margin-right: 10px;
+  background: rgba(15, 118, 110, 0.12);
+  color: var(--primary-strong);
 }
 
 .delete-btn {
-  background: #e74c3c;
-  color: #fff;
+  background: rgba(220, 38, 38, 0.12);
+  color: var(--danger);
 }
 
-.delete-btn:hover {
-  background: #c0392b;
-  transform: translateY(-2px);
+@media (max-width: 768px) {
+  .manage-products {
+    padding: 12px;
+  }
 }

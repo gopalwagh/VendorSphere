@@ -1,82 +1,108 @@
-import toast from "react-hot-toast";
 import { addToCartApi, getCartApi, updateCartApi, removeCartApi } from "../../api/cartApi";
-import { setAddToCartLoading, setCart, setLoading, setFetchCart } from "./cartSlice";
+import { clearCoupon } from "../coupon/couponSlice";
+import { setAddToCartLoading, setCart, setLoading } from "./cartSlice";
 
 export const getCartThunk = () => {
-  return async(dispatch, getState) => {
+  return async (dispatch, getState) => {
     try {
       dispatch(setLoading(true));
 
-      const user = getState().auth;
+      const authState = getState().auth;
 
-      if (!user.isAuthenticated || user.user?.role === "admin") {
-        return;
+      if (!authState.isAuthenticated || authState.user?.role !== "user") {
+        return {
+          success: true,
+          data: {
+            cart: { items: [] },
+            summary: {
+              totalItems: 0,
+              subtotal: 0,
+            },
+          },
+        };
       }
-    
+
       const response = await getCartApi();
-
-      dispatch(setCart(response.data.data));
-      
-    } finally {
-      dispatch(setLoading(false));
-    } 
-  }
-};
-
-export const addToCartThunk = (productId, quantity) => {
-  return async(dispatch) => {
-    try {
-      const response = await addToCartApi(
-        productId, quantity
-      );
-      
       dispatch(setCart(response.data.data));
 
-      dispatch(setAddToCartLoading(true));
-
-      return { 
-        success: true
+      return {
+        success: true,
+        data: response.data.data,
       };
-      
-      if(result.success){
-        dispatch(clearCoupon());
-      }
     } catch (error) {
       return {
         success: false,
-        message: error.response?.data?.message,
+        message: error.response?.data?.message || "Failed to load cart",
       };
     } finally {
-      dispatch(
-        setAddToCartLoading(false)
-      );
+      dispatch(setLoading(false));
     }
+  };
+};
 
+export const addToCartThunk = (productId, quantity) => {
+  return async (dispatch) => {
+    try {
+      dispatch(setAddToCartLoading(true));
+
+      const response = await addToCartApi(productId, quantity);
+
+      dispatch(setCart(response.data.data));
+      dispatch(clearCoupon());
+
+      return {
+        success: true,
+        data: response.data.data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to add product",
+      };
+    } finally {
+      dispatch(setAddToCartLoading(false));
+    }
   };
 };
 
 export const updateCartThunk = (productId, quantity) => {
-  return async(dispatch) => {
+  return async (dispatch) => {
     try {
-      const response = await updateCartApi(productId,quantity);
+      const response = await updateCartApi(productId, quantity);
 
       dispatch(setCart(response.data.data));
+      dispatch(clearCoupon());
 
+      return {
+        success: true,
+        data: response.data.data,
+      };
     } catch (error) {
-      toast.error(error.message);
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to update cart",
+      };
     }
   };
 };
 
 export const removeCartThunk = (productId) => {
-  return async(dispatch) => {
+  return async (dispatch) => {
     try {
       const response = await removeCartApi(productId);
 
       dispatch(setCart(response.data.data));
-      
+      dispatch(clearCoupon());
+
+      return {
+        success: true,
+        data: response.data.data,
+      };
     } catch (error) {
-      toast.error(error.message);      
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to remove item",
+      };
     }
-  }
-}
+  };
+};

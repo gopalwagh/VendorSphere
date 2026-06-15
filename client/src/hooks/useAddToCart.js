@@ -20,12 +20,18 @@ const useAddToCart = () => {
     if (!isAuthenticated) {
       toast.error("Please Login First");
       navigate("/login");
-      return;
+      return {
+        success: false,
+        message: "Please Login First",
+      };
     }
 
     if (quantity > product.stock) {
       toast.error("Not enough stock");
-      return;
+      return {
+        success: false,
+        message: "Not enough stock",
+      };
     }
 
     const result = await dispatch(
@@ -40,6 +46,8 @@ const useAddToCart = () => {
     } else {
       toast.error(result.message);
     }
+
+    return result;
   };
 
   return { addToCart };

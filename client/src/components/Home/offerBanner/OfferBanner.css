@@ -1,21 +1,46 @@
 .offer-banner {
-  padding: 80px 20px;
-  text-align: center;
-  background: #111;
-  color: white;
+  width: min(1400px, calc(100% - 32px));
+  margin: 48px auto 0;
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-radius: 30px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: linear-gradient(135deg, rgba(15, 118, 110, 0.96), rgba(17, 94, 89, 0.94));
+  color: #ffffff;
+  box-shadow: var(--shadow-lg);
 }
 
 .offer-banner h2 {
-  font-size: 3rem;
-  margin-bottom: 20px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  margin-top: 10px;
 }
 
 .offer-banner p {
-  margin-bottom: 25px;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.84);
+  max-width: 52ch;
+  line-height: 1.7;
 }
 
-.offer-banner button {
-  padding: 12px 25px;
-  border: none;
-  border-radius: 8px;
+.offer-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  padding: 14px 20px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--primary-strong);
+  font-weight: 800;
+}
+
+@media (max-width: 720px) {
+  .offer-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

@@ -7,17 +7,17 @@ import { getCartThunk } from "./features/cart/cartThunk";
 
 const App = () => { 
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.auth);
+  const { user, isAuthenticated, fetchedUser } = useSelector((state) => state.auth);
 
   useEffect(() => {
     dispatch(checkAuth());
   },[dispatch]);
 
-  useEffect(()=> {
-    if(user) {
+  useEffect(() => {
+    if (fetchedUser && isAuthenticated && user?.role === "user") {
       dispatch(getCartThunk());
     }
-  }, [user,dispatch]);
+  }, [dispatch, fetchedUser, isAuthenticated, user?.role]);
   
   return (
     <>

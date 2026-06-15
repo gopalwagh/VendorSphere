@@ -1,91 +1,75 @@
-/* ManageOrders.css */
-
 .manage-orders {
-  padding: 20px;
-  background: #f4f6f9;
-  min-height: 100vh;
-  font-family: 'Poppins', sans-serif;
+  padding: 24px;
 }
 
-.manage-orders h1 {
-  font-size: 2rem;
-  margin-bottom: 20px;
-  color: #333;
+.manage-orders .page-header h1 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 2.2rem;
 }
 
-/* Orders Table */
 .orders-table {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  overflow-x: auto;
+  overflow: auto;
+  border-radius: 24px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow-md);
 }
 
 .orders-table table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 920px;
 }
 
 .orders-table th,
 .orders-table td {
-  padding: 12px 15px;
+  padding: 16px;
   text-align: left;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 }
 
 .orders-table th {
-  background: #f9fafc;
-  font-weight: 600;
-  color: #444;
+  color: var(--muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.orders-table tr:hover {
-  background: #f1f5ff;
-  transition: background 0.2s ease;
+.orders-table tbody tr:hover {
+  background: rgba(15, 118, 110, 0.04);
 }
 
-/* Order ID highlight */
-.orders-table td:first-child {
-  font-weight: bold;
-  color: #2a5298;
-}
-
-/* Payment Status Colors */
-.orders-table td:nth-child(5) {
-  font-weight: 600;
-}
-
-.orders-table td:nth-child(5):contains("paid") {
-  color: #27ae60;
-}
-
-.orders-table td:nth-child(5):contains("pending") {
-  color: #e67e22;
-}
-
-.orders-table td:nth-child(5):contains("failed"),
-.orders-table td:nth-child(5):contains("cancelled") {
-  color: #e74c3c;
-}
-
-/* Status Dropdown */
 .orders-table select {
-  padding: 6px 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #fff;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: border 0.2s ease;
+  min-width: 160px;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.92);
 }
 
-.orders-table select:hover {
-  border-color: #2a5298;
+.payment-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: capitalize;
 }
 
-/* Date Column */
-.orders-table td:last-child {
-  color: #555;
-  font-size: 0.9rem;
+.payment-badge.paid {
+  color: var(--success);
+  background: rgba(22, 163, 74, 0.1);
+}
+
+.payment-badge.pending {
+  color: var(--accent);
+  background: rgba(249, 115, 22, 0.12);
+}
+
+@media (max-width: 768px) {
+  .manage-orders {
+    padding: 12px;
+  }
 }

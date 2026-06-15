@@ -33,6 +33,7 @@ export const fetchProductDetails = (productId) => {
       
       dispatch(setSelectedProduct(response.data.data));
     } catch (error) {
+      dispatch(setSelectedProduct(null));
       dispatch(setError
         (error.response?.data?.message)
       );
@@ -92,8 +93,6 @@ export const updateProductThunk = (productId, formData) => {
     try{ 
       dispatch(setLoading(true));
       const response = await updateProductApi( productId, formData );
-      console.log(response.data.data)
-
       return {
         success: true,
         data: response.data.data,
@@ -107,7 +106,7 @@ export const updateProductThunk = (productId, formData) => {
       };
 
     } finally {
-      setLoading(false);
+      dispatch(setLoading(false));
     }
   };
 };
@@ -120,7 +119,7 @@ export const deleteProductThunk = (productId) => {
 
       return {
         success: true,
-        message: response.message,
+        message: response.message || response.data?.message || "Product deleted",
       }
     } catch(error) {
       return {

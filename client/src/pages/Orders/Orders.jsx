@@ -1,9 +1,9 @@
-import './Orders.css'
+import "./Orders.css";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { FiPackage, FiArrowRight } from "react-icons/fi";
-import Loader from "../../components/common/Loader/Loader";
+import Loader from "../../components/Loader/Loader";
 import { fetchMyOrdersThunk } from "../../features/orders/orderThunk";
 
 const FILTERS = ["all", "pending", "processing", "packed", "shipped", "delivered", "cancelled"];
@@ -13,9 +13,7 @@ const Orders = () => {
   const navigate = useNavigate();
 
   const { orders = [], loading } = useSelector((state) => state.orders);
-
   const [filter, setFilter] = useState("all");
-  const safeImage = (img) => (img && img.trim() !== "" ? img : "/placeholder.png");
 
   useEffect(() => {
     if (orders.length === 0) {
@@ -29,8 +27,6 @@ const Orders = () => {
     if (filter === "all") return true;
     return order.orderStatus === filter;
   });
-
-  const getStatusClass = (status) => (status ? status.toLowerCase() : "pending");
 
   const formatDate = (date) =>
     new Date(date).toLocaleDateString("en-IN", {
@@ -48,7 +44,6 @@ const Orders = () => {
         </p>
       </div>
 
-      {/* FILTER BAR */}
       <div className="orders-filter">
         {FILTERS.map((status) => (
           <button
@@ -61,7 +56,6 @@ const Orders = () => {
         ))}
       </div>
 
-      {/* EMPTY STATE */}
       {filteredOrders.length === 0 ? (
         <div className="empty-orders">
           <div className="empty-orders-icon">
@@ -71,7 +65,7 @@ const Orders = () => {
           <p>
             {filter === "all"
               ? "Start shopping to see your orders here."
-              : `You don't have any ${filter} orders right now.`}
+              : `You do not have any ${filter} orders right now.`}
           </p>
           <button className="browse-btn" onClick={() => navigate("/products")}>
             Browse Products
@@ -84,12 +78,11 @@ const Orders = () => {
 
             return (
               <div key={order._id} className="order-card">
-                {/* PRODUCT IMAGES */}
                 <div className="order-images">
-                  {order.orderItems?.slice(0, 4).map((item, idx) => (
+                  {order.orderItems?.slice(0, 4).map((item, index) => (
                     <img
-                      key={idx}
-                      src={safeImage(item.productImage)}
+                      key={index}
+                      src={item.productImage}
                       alt={item.productTitle}
                       className="order-img"
                     />
@@ -99,29 +92,23 @@ const Orders = () => {
                   )}
                 </div>
 
-                {/* ORDER ID + DATE */}
                 <div className="order-meta">
                   <h3 className="order-id">Order #{order._id.slice(-6).toUpperCase()}</h3>
                   <p className="order-date">Placed on {formatDate(order.createdAt)}</p>
                 </div>
 
-                {/* STATUS + AMOUNT */}
                 <div className="order_summary">
-                  <span className={`badge status-${getStatusClass(order.orderStatus)}`}>
+                  <span className={`badge status-${order.orderStatus.toLowerCase()}`}>
                     <span className="badge-dot" />
                     {order.orderStatus}
                   </span>
-                  <span className={`badge payment-${getStatusClass(order.paymentStatus)}`}>
+                  <span className={`badge payment-${order.paymentStatus.toLowerCase()}`}>
                     {order.paymentStatus}
                   </span>
-                  <span className="order-amount">₹{order.totalAmount}</span>
+                  <span className="order-amount">Rs. {order.totalAmount}</span>
                 </div>
 
-                {/* TRACK BUTTON */}
-                <button
-                  className="track-btn"
-                  onClick={() => navigate(`/orders/${order._id}`)}
-                >
+                <button className="track-btn" onClick={() => navigate(`/orders/${order._id}`)}>
                   Track Order
                   <FiArrowRight size={16} />
                 </button>

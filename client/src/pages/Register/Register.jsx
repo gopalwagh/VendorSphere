@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from  "react-redux";
 import { registerThunk } from "../../features/auth/authThunk";
 
 const Register = () => {
-  const { loading } = useSelector((state) => state.auth.loading);
+  const loading = useSelector((state) => state.auth.loading);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();

@@ -1,74 +1,219 @@
 .products-page {
-  max-width: 1400px;
-  margin: auto;
-
+  width: min(1400px, calc(100% - 32px));
+  margin: 32px auto 0;
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 32px;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+}
 
-  padding: 30px;
+.filters,
+.products-content {
+  border-radius: 28px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: var(--shadow-md);
 }
 
 .filters {
-  background: white;
-  padding: 20px;
-  border-radius: 14px;
-  border: 1px solid #e5e7eb;
-
+  position: sticky;
+  top: 108px;
   height: fit-content;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.filters h3 {
-  margin-bottom: 20px;
+.filter-card h3,
+.products-header h2 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 2rem;
 }
 
+.search-filter,
 .filter-group {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
-.filter-group label {
+.search-filter label,
+.filter-group h4 {
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.search-inline {
+  display: flex;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.search-inline input,
+.filter-group select {
+  height: 48px;
+  width: 100%;
+  border: 0;
+  outline: none;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.search-inline button,
+.reset-btn,
+.clear-link,
+.category-pill {
+  border: 0;
+  border-radius: 999px;
+}
+
+.search-inline button {
+  width: 64px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+  color: #ffffff;
+}
+
+.filter-title-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.filter-group select {
-  margin-top: 10px;
-  padding: 10px;
-  border-radius: 8px;
+.clear-link,
+.reset-btn {
+  padding: 0;
+  background: transparent;
+  color: var(--primary);
+  font-weight: 700;
 }
 
-.products-content h2 {
-  margin-bottom: 24px;
+.category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.category-pill {
+  padding: 10px 14px;
+  background: rgba(15, 23, 42, 0.04);
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.category-pill.active {
+  background: rgba(15, 118, 110, 0.12);
+  color: var(--primary-strong);
+}
+
+.reset-btn {
+  margin-top: 2px;
+  align-self: flex-start;
+}
+
+.products-content {
+  padding: 24px;
+}
+
+.products-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.filter-summary {
+  color: var(--muted);
+  font-size: 0.95rem;
 }
 
 .products-grid {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
 
-  grid-template-columns:
-    repeat(auto-fill,minmax(280px,1fr));
+.empty-products-state {
+  padding: 48px 20px;
+  text-align: center;
+  border: 1px dashed rgba(15, 23, 42, 0.14);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.58);
+}
 
-  gap: 24px;
+.empty-products-state h3 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+}
+
+.empty-products-state p {
+  color: var(--muted);
+}
+
+.empty-products-state button {
+  margin-top: 18px;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+  color: #ffffff;
+  font-weight: 700;
 }
 
 .pagination {
   display: flex;
-  justify-content: right;
+  justify-content: flex-end;
   gap: 10px;
-  margin-top: 40px;
+  margin-top: 24px;
+  flex-wrap: wrap;
 }
 
 .pagination button {
-  border: 1px solid #d1d5db;
-  background: white;
-  padding: 10px 16px;
-  border-radius: 8px;
-  cursor: pointer;
+  min-width: 44px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .active-page {
-  background: #111827 !important;
-  color: white;
+  background: linear-gradient(135deg, var(--primary), var(--primary-strong)) !important;
+  color: #ffffff;
+}
+
+@media (max-width: 1024px) {
+  .products-page {
+    grid-template-columns: 1fr;
+  }
+
+  .filters {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .products-page {
+    width: min(100% - 16px, 1400px);
+  }
+
+  .products-content,
+  .filters {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .products-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

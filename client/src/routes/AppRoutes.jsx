@@ -13,13 +13,23 @@ import Orders from "../pages/Orders/Orders.jsx";
 import OrderDetails from "../pages/orderDetails/OrderDetails.jsx";
 import DashboardLayout from "../layouts/DashboardLayout";
 import ManageOrders from "../pages/Dashboard/ManageOrders/ManageOrders";
-import Coupons from "../pages/Dashboard/Coupons/Coupons";
+import Coupons from "../pages/superAdmin/Coupons.jsx";
 import DashboardHome from "../pages/Dashboard/DashboardHome/DashboardHome.jsx"
 import ManageProducts from "../pages/Dashboard/ManageProducts/ManageProducts"
 import Analytics from "../pages/Dashboard/Analytics/Analytics";
 import ProtectedRoute from "./ProtectedRoute.jsx"
 import NotFound from "../pages/NotFound/NotFound.jsx";
 import CreateProduct from "../pages/Dashboard/CreateProduct/CreateProduct.jsx";
+import SellerApprovedRoute from "./SellerRoutes.jsx";
+import SellerRejected from "../pages/sellers/SellerRejected.jsx";
+import SellerPending from "../pages/sellers/SellerPending.jsx";
+import SellerApplication from "../pages/sellers/SellerApplication.jsx";
+import Users from "../pages/superAdmin/Users.jsx";
+import ApprovedSellers from "../pages/superAdmin/ApprovedSellers.jsx"
+import SellerApplications from "../pages/superAdmin/SellerApplications.jsx";
+import SuperAdminDashboard from "../pages/superAdmin/SuperAdminDashboard.jsx";
+import SuperAdminLayout from "../pages/superAdmin/SuperAdminLayout.jsx";
+import SellerStatus from "../pages/sellers/SellerStatus.jsx";
 
 const AppRoutes = () => {
   return (
@@ -50,10 +60,10 @@ const AppRoutes = () => {
 
       {/* DashBoard Layout Routes  */}
       <Route path="/dashboard" element={ 
-          <ProtectedRoute roles={
-            ["admin"]
-          }>
-            <DashboardLayout />
+          <ProtectedRoute roles={["admin"]}>
+            <SellerApprovedRoute>
+              <DashboardLayout />
+            </SellerApprovedRoute>
           </ProtectedRoute>
         } 
       >
@@ -64,11 +74,28 @@ const AppRoutes = () => {
         <Route path="orders" element={<ManageOrders />} />
         <Route path="analytics" element={<Analytics />} />
       </Route>
+      
+      <Route
+        path="/seller/application"
+        element={
+          <ProtectedRoute roles={["admin"]}>
+            <SellerStatus />
+          </ProtectedRoute>
+        }
+      />
 
-      <Route element={<DashboardLayout />} > 
-        <Route path="/super_admin" element = {<DashboardHome />} /> 
-        <Route path="/orders" element= {<ManageOrders />} />
-        <Route path="/coupons" element={<Coupons />} />
+      <Route path="/super-admin"
+        element={
+          <ProtectedRoute roles={["superAdmin"]}>
+            <SuperAdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<SuperAdminDashboard />} />
+        <Route path="applications" element={ <SellerApplications /> } />
+        <Route path="approved-sellers" element={<ApprovedSellers />} /> 
+        <Route path="users" element={<Users />} />
+        <Route path="coupons" element={<Coupons />} />
       </Route>
 
       {/* Catch-all NotFound */}

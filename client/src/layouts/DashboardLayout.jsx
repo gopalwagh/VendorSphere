@@ -1,11 +1,11 @@
 import { Outlet } from "react-router-dom";
 import "./DashboardLayout.css";
-import DashboardSidebar from "../components/dashboard/DashboardSidebar/DashboardSidebar";
+import Sidebar from "../components/Sidebar/sidebar";
 
 const DashboardLayout = () => {
   return (
     <div className="dashboard-layout">
-      <DashboardSidebar />
+      <Sidebar />
       <main className="dashboard-content">
         <Outlet />
       </main>

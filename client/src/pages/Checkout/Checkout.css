@@ -1,149 +1,141 @@
-/* main container */
-.checkout-container{
-  max-width:1200px;
-  margin:40px auto;
-  display:grid;
-  grid-template-columns:1fr 420px;
-  gap:40px;
-  padding:0 20px;
+.checkout-container {
+  width: min(1400px, calc(100% - 32px));
+  margin: 32px auto 0;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 24px;
 }
 
 .checkout-left,
-.checkout-right{
-  background:#fff;
-  border-radius:16px;
-  height: 600px;
-  overflow: hidden;
-  padding:30px;
-  box-shadow:0 8px 24px rgba(0,0,0,0.08);
+.checkout-right {
+  padding: 24px;
+  border-radius: 28px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: var(--shadow-md);
 }
 
-.checkout-right{
-  display:flex;
-  flex-direction:column;
+.checkout-left h2,
+.checkout-right h2 {
+  font-family: "Space Grotesk", sans-serif;
 }
 
-.checkout-left h2 {
-  margin-bottom: 25px;
-}
-
-/* address ka form */
 .address-form {
-  display:flex;
-  flex-direction:column;
-  gap:16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 18px;
 }
 
 .address-form input {
-  height:52px;
-  border:1px solid #ddd;
-  border-radius:10px;
-  padding:0 16px;
-  font-size:15px;
-  outline:none;
+  height: 50px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  padding: 0 16px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.92);
 }
 
-.address-form input:focus{
-  border-color:#111;
-}
-/* Submit Button inside address-form */
-.address-form button {
-  grid-column: span 2; /* button full width row */
-  padding: 12px;
-  border: 2px solid wheat;
-  border-radius: 8px;
-  background: #1e88e5;
-  color: white;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.3s ease;
+.address-form input:first-child,
+.address-form input:nth-child(3) {
+  grid-column: span 2;
 }
 
-.address-form button:hover {
-  background: #1565c0;
+.place-order-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 15px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+  color: #ffffff;
+  font-weight: 800;
 }
 
-/* ITEMS */
+.place-order-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.checkout-right {
+  display: flex;
+  flex-direction: column;
+}
+
 .items-list {
   display: flex;
-  overflow-y:auto;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
+  margin-top: 18px;
+  max-height: 430px;
+  overflow: auto;
+  padding-right: 6px;
 }
 
-.item-row{
-  display:flex;
-  gap:16px;
-  padding:16px;
-  border:1px solid #eee;
-  border-radius:12px;
-  margin-bottom:16px;
+.item-row {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.72);
 }
 
-.item-row img{
-  width:90px;
-  height:90px;
-  object-fit:cover;
-  border-radius:10px;
+.item-row img {
+  width: 84px;
+  height: 84px;
+  object-fit: cover;
+  border-radius: 18px;
 }
 
-.item-info{
-  flex:1;
-}
-
-.item-info .title{
-  font-weight:600;
-  margin-bottom:8px;
+.item-info .title {
+  font-weight: 700;
 }
 
 .item-info .price {
-  color: #666;
+  margin-top: 6px;
+  color: var(--muted);
 }
 
-/* SUMMARY */
 .summary-box {
-  margin-top: 20px;
-}
-
-.checkout-right h2 {
-  margin-bottom: 25px;
+  margin-top: 18px;
 }
 
 .row,
-.total-row{
-  display:flex;
-  justify-content:space-between;
-  padding:12px 0;
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  color: var(--muted);
+  font-weight: 600;
 }
 
-.total-row{
-  font-size:20px;
-  font-weight:700;
+.total-row {
+  font-size: 1.05rem;
+  color: var(--text);
+  font-weight: 800;
 }
 
-/* BUTTON */
-.place-order-btn{
-  width:100%;
-  height:55px;
-  border:none;
-  border-radius:12px;
-  background:#111;
-  color:#fff;
-  font-size:16px;
-  font-weight:600;
-  cursor:pointer;
-  margin-top:20px;
-}
-
-.place-order-btn:hover{
-  opacity:.9;
-}
-
-@media(max-width:900px){
-  .checkout-container{
-    grid-template-columns:1fr;
+@media (max-width: 1024px) {
+  .checkout-container {
+    grid-template-columns: 1fr;
   }
-  .checkout-right{
-    order:-1;
+}
+
+@media (max-width: 720px) {
+  .checkout-container {
+    width: min(100% - 16px, 1400px);
+  }
+
+  .address-form {
+    grid-template-columns: 1fr;
+  }
+
+  .address-form input:first-child,
+  .address-form input:nth-child(3) {
+    grid-column: auto;
   }
 }

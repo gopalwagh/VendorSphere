@@ -1,29 +1,10 @@
 .feature {
-  max-width: 1400px;
-  margin: 80px auto;
-  padding: 0 30px;
-}
-
-.feature h2 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 30px;
-  color: #111827;
-  position: relative;
-}
-
-.feature h2::after {
-  content: "";
-  display: block;
-  width: 80px;
-  height: 4px;
-  margin-top: 8px;
-  border-radius: 20px;
-  background: #111827;
+  width: min(1400px, calc(100% - 32px));
+  margin: 42px auto 0;
 }
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 28px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
 }

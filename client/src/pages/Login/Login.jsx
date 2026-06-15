@@ -6,7 +6,7 @@ import { loginThunk } from "../../features/auth/authThunk";
 import { useNavigate } from "react-router-dom";
 
 const Login = () => {
-  const { loading, } = useSelector((state) => state.auth.loading);
+  const loading = useSelector((state) => state.auth.loading);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,13 +28,21 @@ const Login = () => {
     
     if (result.success) {
       toast.success("Login Successful");
-      if (result.role === "admin") {
-        navigate("/dashboard")
+
+      if (result.role === "superadmin") {
+        navigate("/super-admin");
+
+      } else if (result.role === "admin") {
+        if (result.sellerStatus === "approved") {
+          navigate("/dashboard");
+        } else {
+          navigate("/seller/application");
+        }
       } else {
         navigate("/");
-      }
+        }
     } else {
-      toast.error(result.message);
+        toast.error(result.message);
     }
   }
 

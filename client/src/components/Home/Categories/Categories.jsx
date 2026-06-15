@@ -1,32 +1,37 @@
 import "./Categories.css";
+import { memo } from "react";
+import { Link } from "react-router-dom";
+
+const categories = [
+  "Electronics",
+  "Fashion",
+  "Shoes",
+  "Books",
+  "Mobiles",
+  "Gaming",
+];
 
 const Categories = () => {
-  const categories = [
-    "Electronics",
-    "Fashion",
-    "Shoes",
-    "Books",
-    "Mobiles",
-    "Gaming"
-  ];
-
   return (
     <section className="categories">
-      <h2>Shop By Category</h2>
+      <div className="section-heading">
+        <span className="hero-kicker">Browse by vibe</span>
+        <h2>Shop by category</h2>
+      </div>
       <div className="category-grid">
-        {
-          categories.map((item)=>(
-            <div 
-              key={item}
-              className="category-card"
-            >
-              {item}
-            </div>  
-          ))
-        }
+        {categories.map((item) => (
+          <Link
+            key={item}
+            to={`/products?category=${encodeURIComponent(item.toLowerCase())}`}
+            className="category-card"
+          >
+            <span>{item}</span>
+            <small>Explore collection</small>
+          </Link>
+        ))}
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default Categories;
+export default memo(Categories);

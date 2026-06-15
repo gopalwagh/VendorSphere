@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProductDetails,fetchAdminProductsThunk, createProductThunk, updateProductThunk } from "../../../features/products/productThunk";
-import Loader from "../../../components/common/Loader/Loader";
+import Loader from '../../../components/Loader/Loader';
 
 const CreateProduct = () => {
   const dispatch = useDispatch();

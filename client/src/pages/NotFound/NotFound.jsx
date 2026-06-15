@@ -1,22 +1,19 @@
 import "./NotFound.css";
-import { useNavigate, } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 const NotFound = () => {
-  const { user }= useSelector((state)=> state.auth);
+  const { user } = useSelector((state) => state.auth);
   const role = user?.role;
-  
+  const homeLink = role === "superAdmin" ? "/super-admin" : role === "admin" ? "/dashboard" : "/";
+
   return (
     <div className="not-found">
       <div className="not-found-box">
-        <h1>404</h1>
-        <p>Page Not Found</p>
-        { 
-          role==="user" ? 
-            (<a href="/">Go Back Home</a>) 
-            : (<a href="/dashboard">Go Back Home</a>)
-        }
-        
+        <span className="detail-eyebrow">404</span>
+        <h1>Page Not Found</h1>
+        <p>The page you requested does not exist or moved somewhere else.</p>
+        <Link to={homeLink}>Go Back Home</Link>
       </div>
     </div>
   );

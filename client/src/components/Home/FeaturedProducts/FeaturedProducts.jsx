@@ -1,22 +1,25 @@
 import "./FeaturedProducts.css";
-import ProductCard from "../../product/ProductCard/ProductCard";
+import { memo } from "react";
+import ProductCard from "../../../components/ProductCard/ProductCard.jsx";
 import { useSelector } from "react-redux";
 
 const FeaturedProducts = () => {
-  const { products } = useSelector((state)=> state.product);
+  const { products } = useSelector((state) => state.product);
+  const featuredProducts = products.slice(0, 8);
 
   return (
     <section className="feature">
-      <h2>Featured Products</h2>
+      <div className="section-heading">
+        <span className="hero-kicker">Best picks</span>
+        <h2>Featured products</h2>
+      </div>
       <div className="product-grid">
-        {
-          products.slice(0,8).map((product) => (
-            <ProductCard key={product._id} product={product} />
-          ))
-        }
+        {featuredProducts.map((product) => (
+          <ProductCard key={product._id} product={product} />
+        ))}
       </div>
     </section>
   );
 };
 
-export default FeaturedProducts;
+export default memo(FeaturedProducts);
