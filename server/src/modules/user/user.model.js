@@ -45,8 +45,19 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["user", "admin"],
+      enum: ["user", "admin", "superAdmin"],
       default: "user",
+    },
+    
+    sellerStatus: {
+      type: String,
+      enum: [
+        "not_applied",
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      default: "not_applied"
     },
 
     refreshToken: {

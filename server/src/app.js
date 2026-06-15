@@ -15,6 +15,7 @@ import cartRoutes from "./modules/cart/cart.routes.js";
 import orderRoutes from "./modules/order/order.routes.js";
 import couponRoutes from "./modules/coupon/coupon.routes.js";
 import adminRoutes from "./modules/admin/admin.routes.js";
+import sellerRoutes from "./modules/seller/seller.routes.js";
 
 const app = express();
 const limiter = rateLimit({
@@ -61,6 +62,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/coupons",couponRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/seller", sellerRoutes);
 
 app.use(errorMiddleware);
 

@@ -77,3 +77,37 @@ export const applyCoupon = asyncHandler(async (req, res) => {
     )
   );
 });
+
+export const getAllCoupons = asyncHandler(async(req,res) => {
+  const coupons = await Coupon.find();
+
+  if(!coupons) {
+    throw new ApiError(400, "No Coupon Exists");
+  }
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      coupons,
+      "All Coupons Fetched"
+    )
+  )
+})
+
+export const deleteCoupon = asyncHandler(async(req,res) => {
+  const { couponId } = req.params;
+  const coupon = await Coupon.findById(couponId);
+
+  if (!coupon) {
+    throw new ApiError(400, "Coupon not found");
+  }
+
+  await coupon.deleteOne();
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      null,
+      "Coupon deleted successfully"
+    )
+  )
+});
