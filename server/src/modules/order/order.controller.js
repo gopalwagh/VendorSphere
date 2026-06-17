@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
+import mongoose from "mongoose";
 
 import Cart from "../cart/cart.model.js";
 import Product from "../product/product.model.js";
@@ -150,103 +151,138 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Payment verification failed");
   }
 
-  const order = await Order.findOne({
-    razorpayOrderId: razorpay_order_id,
-    user: req.user._id,
-  });
+  let order; /// order defined here 
+  const session = await mongoose.startSession();
+  try {
+    session.startTransaction();
 
-  if (!order) {
-    throw new ApiError(404, "Order not found");
-  }
+    order = await Order.findOne({
+      razorpayOrderId: razorpay_order_id,
+      user: req.user._id,
+    }).session(session);
 
-  if (order.paymentStatus === "paid") {
-    return res.status(200).json(
-      new ApiResponse(
-        200,
-        order,
-        "Payment already verified"
-      )
-    );
-  }
-
-  order.paymentStatus = "paid";
-  order.orderStatus = "processing";
-  order.razorpayPaymentId = razorpay_payment_id;
-  order.orderTimeline.push({
-    status: "processing",
-    message: "Payment verified and order is processing",
-  });
-
-  for (const item of order.orderItems) {
-    const product = await Product.findById(item.product);
-    if (!product) {
-      throw new ApiError(404,"Product not found for order item");
+    if (!order) {
+      throw new ApiError(404, "Order not found");
     }
 
-    if (item.quantity > product.stock) {
-      throw new ApiError(400,`${product.title} no longer has enough stock`);
+    if (order.paymentStatus === "paid") {
+      return res.status(200).json(
+        new ApiResponse(
+          200,
+          order,
+          "Payment already verified"
+        )
+      );
     }
 
-    const itemTotal = item.price * item.quantity;
-    const commissionAmount = (itemTotal * item.commissionPercent) / 100;
-
-    const sellerAmount = itemTotal - commissionAmount;
-
-    item.commissionAmount = commissionAmount;
-    item.sellerAmount = sellerAmount;
-    product.stock -= item.quantity;
-    
-    item.itemTimeline.push({
+    order.paymentStatus = "paid";
+    order.orderStatus = "processing";
+    order.razorpayPaymentId = razorpay_payment_id;
+    order.orderTimeline.push({
       status: "processing",
-      message: "Payment verified",
-    })
-    await product.save();
-  }
+      message: "Payment verified and order is processing",
+    });
 
-  await order.save();
-
-  await Cart.findOneAndDelete({
-    user: order.user,
-  });
-
-  const user = await User.findById(order.user);
-
-  if (user) {
-    try {
-      await emailQueue.add(
-        "sendOrderEmail",
+    for (const item of order.orderItems) {
+      const updatedProduct = await Product.findOneAndUpdate(
         {
-          to: user.email,
-          subject: "Order placed successfully",
-          html: `
-            <h2>Order confirmed</h2>
-            <p>Your payment was successful.</p>
-            <p>Order Amount: Rs. ${order.totalAmount}</p>
-            <p>Status: ${order.orderStatus}</p>
-          `,
+          _id: item.product,
+          stock: {
+            $gte: item.quantity,
+          },
         },
         {
-          attempts: 3,
-          backoff: {
-            type: "exponential",
-            delay: 5000,
+          $inc: {
+            stock: -item.quantity,
           },
-          removeOnComplete: true,
+        },
+        {
+          new: true,
+          session,
         }
       );
 
-      const invoicePath = await generateInvoice({
-        order,
-        user,
-      });
+      if (!updatedProduct) {
+        throw new ApiError(
+          400,
+          "Product no longer has enough stock"
+        );
+      }
 
-      console.log("Invoice generated:", invoicePath);
-    } catch (error) {
-      console.error(
-        "Post-payment tasks failed:",
-        error.message
-      );
+      const itemTotal = item.price * item.quantity;
+      const commissionAmount = (itemTotal * item.commissionPercent) / 100;
+
+      const sellerAmount = itemTotal - commissionAmount;
+
+      item.commissionAmount = commissionAmount;
+      item.sellerAmount = sellerAmount;
+      
+      item.itemTimeline.push({
+        status: "processing",
+        message: "Payment verified",
+      })
+
     }
+
+    await order.save({ session });
+
+    await Cart.findOneAndDelete(
+      {
+        user: order.user,
+      },
+      {
+        session,
+      }
+    );
+
+    await session.commitTransaction();
+
+    const user = await User.findById(order.user);
+
+    if (user) {
+      try {
+        await emailQueue.add(
+          "sendOrderEmail",
+          {
+            to: user.email,
+            subject: "Order placed successfully",
+            html: `
+              <h2>Order confirmed</h2>
+              <p>Your payment was successful.</p>
+              <p>Order Amount: Rs. ${order.totalAmount}</p>
+              <p>Status: ${order.orderStatus}</p>
+            `,
+          },
+          {
+            attempts: 3,
+            backoff: {
+              type: "exponential",
+              delay: 5000,
+            },
+            removeOnComplete: true,
+          }
+        );
+
+        const invoicePath = await generateInvoice({
+          order,
+          user,
+        });
+
+        console.log("Invoice generated:", invoicePath);
+      } catch (error) {
+        console.error(
+          "Post-payment tasks failed:",
+          error.message
+        );
+      }
+    } 
+  } 
+  catch(error){
+    await session.abortTransaction();
+    throw error;
+  } 
+  finally {
+    session.endSession();
   }
 
   return res.status(200).json(

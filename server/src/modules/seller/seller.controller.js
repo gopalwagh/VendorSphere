@@ -22,23 +22,29 @@ export const applySellerProfile = asyncHandler(async(req,res) =>  {
     throw new ApiError( 400, "All fields are required" ); 
   }
 
-  if(!req.file) {
-    throw new ApiError(400, "product image required");
-  }
-   
-  let storeLogo = {};
-  if(req.file){
+  const existingProfile = await SellerProfile.findOne({ user: req.user._id, });
+
+  let sellerProfile;
+
+  let storeLogo = existingProfile?.storeLogo || {};
+  if (req.file) {
+    if (existingProfile?.storeLogo?.public_id) {
+      try {
+        await cloudinary.uploader.destroy(existingProfile.storeLogo.public_id);
+      } catch (error) {
+        console.error("Failed to remove old seller logo:", error.message);
+      }
+    }
+
     const uploadedImage = await uploadToCloudinary(req.file.buffer,"seller-logos");
   
     storeLogo = {
       public_id: uploadedImage.public_id,
       url: uploadedImage.secure_url,
-    }
+    };
+  } else if (!existingProfile) {
+    throw new ApiError(400, "Store logo is required");
   }
-
-  const existingProfile = await SellerProfile.findOne({ user: req.user._id, });
-
-  let sellerProfile;
 
   if(existingProfile && existingProfile.applicationStatus!=="rejected") {
     throw new ApiError(400, "Application already Exist")
@@ -95,13 +101,60 @@ export const applySellerProfile = asyncHandler(async(req,res) =>  {
 export const getSellerProfile = asyncHandler(async (req,res) => {
   const sellerProfile = await SellerProfile.findOne({
     user: req.user._id,
-  });
+  })
+    .populate("user", "name email role sellerStatus phone avatar addresses")
+    .populate("approvedBy", "name email");
 
   return res.status(200).json(
     new ApiResponse(
       200,
       sellerProfile,
       "Seller Profile fetched"
+    )
+  );
+});
+
+export const updateSellerProfile = asyncHandler(async (req, res) => {
+  const { storeName, storeDescription, phone, address, gstNumber, panNumber, bankName, accountNumber, ifscCode } = req.body;
+  
+  const existingProfile = await SellerProfile.findOne({ user: req.user._id });
+  
+  if (!existingProfile) {
+    throw new ApiError(404, "Seller profile not found");
+  }
+
+  if (storeName) existingProfile.storeName = storeName;
+  if (storeDescription) existingProfile.storeDescription = storeDescription;
+  if (phone) existingProfile.phone = phone;
+  if (address) existingProfile.address = address;
+  if (gstNumber) existingProfile.gstNumber = gstNumber;
+  if (panNumber) existingProfile.panNumber = panNumber;
+  if (bankName) existingProfile.bankName = bankName;
+  if (accountNumber) existingProfile.accountNumber = accountNumber;
+  if (ifscCode) existingProfile.ifscCode = ifscCode;
+
+  if (req.file) {
+    if (existingProfile.storeLogo?.public_id) {
+      try {
+        await cloudinary.uploader.destroy(existingProfile.storeLogo.public_id);
+      } catch (error) {
+        console.error("Failed to remove old store logo:", error.message);
+      }
+    }
+    const uploadedImage = await uploadToCloudinary(req.file.buffer, "seller-logos");
+    existingProfile.storeLogo = {
+      public_id: uploadedImage.public_id,
+      url: uploadedImage.secure_url,
+    };
+  }
+
+  await existingProfile.save();
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      existingProfile,
+      "Seller profile updated successfully"
     )
   );
 });

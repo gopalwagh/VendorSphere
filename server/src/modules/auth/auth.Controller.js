@@ -160,3 +160,23 @@ export const logoutUser = asyncHandler(async (req, res) => {
       new ApiResponse(200, null, "Logout successfull")
     );
 });
+
+// update user profile
+export const updateUserProfile = asyncHandler(async (req, res) => {
+  const { name, phone, addresses } = req.body;
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    throw new ApiError(404, "User not found");
+  }
+
+  if (name !== undefined) user.name = name;
+  if (phone !== undefined) user.phone = phone;
+  if (addresses !== undefined) user.addresses = addresses;
+
+  await user.save();
+
+  return res.status(200).json(
+    new ApiResponse(200, user, "Profile updated successfully")
+  );
+});

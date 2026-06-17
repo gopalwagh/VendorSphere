@@ -3,7 +3,17 @@ import adminOnly from "../../middleware/adminMiddleware.js";
 import superAdminOnly from "../../middleware/superAdminMiddleware.js";
 import protect from "../../middleware/authMiddleware.js";
 import upload from "../../middleware/uploadMiddleware.js";
-import { getSellerProfile, applySellerProfile, getPendingApplications, approveApplication,rejectApplication, getSuperAdminDashboard, getApprovedApplications, getAllUsers } from "./seller.controller.js";
+import { 
+  getSellerProfile, 
+  applySellerProfile, 
+  getPendingApplications,
+  approveApplication,
+  rejectApplication, 
+  getSuperAdminDashboard, 
+  getApprovedApplications, 
+  getAllUsers, 
+  updateSellerProfile 
+} from "./seller.controller.js";
 
 const router = express.Router();
 
@@ -11,7 +21,7 @@ router.post("/apply", protect, adminOnly, upload.single("storeLogo"), applySelle
 
 router.get("/profile", protect, adminOnly,getSellerProfile);
 
-// router.put("/profile", protect, adminOnly,updateSellerProfile);
+router.put("/profile", protect, adminOnly, updateSellerProfile);
 
 // superadmin
 router.get("/applications", protect, superAdminOnly, getPendingApplications);
