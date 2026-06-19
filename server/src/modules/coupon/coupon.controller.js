@@ -96,13 +96,9 @@ export const getAllCoupons = asyncHandler(async(req,res) => {
 
 export const deleteCoupon = asyncHandler(async(req,res) => {
   const { couponId } = req.params;
-  const coupon = await Coupon.findById(couponId);
+  
+  await Coupon.findByIdAndDelete(couponId);
 
-  if (!coupon) {
-    throw new ApiError(400, "Coupon not found");
-  }
-
-  await coupon.deleteOne();
   res.status(200).json(
     new ApiResponse(
       200,

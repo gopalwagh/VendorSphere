@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/ApiError.js";
 import User from "../modules/user/user.model.js";
+import { normalizeRole } from "../utils/roleUtils.js";
 
 const protect = asyncHandler(async (req, res, next) => {
 
@@ -21,6 +22,8 @@ const protect = asyncHandler(async (req, res, next) => {
   if (!user) {
     throw new ApiError(401, "Invalid token");
   }
+
+  user.role = normalizeRole(user.role);
 
   req.user = user;
 

@@ -9,14 +9,7 @@ import uploadToCloudinary from "../../utils/uploadToCloudinary.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
-
-const invalidateProductCache = async () => {
-  const keys = await redisClient.keys("products:*");
-
-  if (keys.length > 0) {
-    await redisClient.del(...keys);
-  }
-};
+import { getCachedData, setCachedData, invalidateProductCache } from "../../utils/redisHelper.js";
 
 export const createProduct = asyncHandler(async (req, res) => {
   const { title, description, price, category, brand, stock , } = req.body;
@@ -24,8 +17,7 @@ export const createProduct = asyncHandler(async (req, res) => {
   if(!title || !description || !price || !category) {
     throw new ApiError(400, "All required fields missing.");
   }
-  // images are got undefined so check it later 
-/*  console.log( req.file );  */
+  // images file check  
   if(!req.file){
     throw new ApiError(400, "product image required");
   }
@@ -48,7 +40,7 @@ export const createProduct = asyncHandler(async (req, res) => {
       createdBy : req.user._id,
     }
   );
-
+  // cached clean around product*
   await invalidateProductCache();
 
   return res 
@@ -87,7 +79,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
         console.error("Failed to remove old product image:", error.message);
       }
     }
-
+    // upload Image at cloudinary
     const uploadImage = await uploadToCloudinary(req.file.buffer);
     product.images = [
       {
@@ -96,9 +88,10 @@ export const updateProduct = asyncHandler(async (req, res) => {
       },
     ];
   }
-
+  // update product save
   await product.save();
-  await invalidateProductCache();
+  // redis clean around productId 
+  await invalidateProductCache(productId);
 
   return res.status(200).json(
     new ApiResponse(
@@ -130,18 +123,19 @@ export const deleteProduct = asyncHandler(async (req, res) => {
   }
 
   await Product.findByIdAndDelete(productId);
-  
+  // overall users cart update
   await Cart.updateMany(
-  {},
-  {
-    $pull: {
-      items: {
-        product: productId,
+    {},
+    {
+      $pull: {
+        items: {
+          product: productId,
+        },
       },
-    },
-  }
-);
-  await invalidateProductCache();
+    }
+  );
+  // redis clean around productId
+  await invalidateProductCache(productId);
 
   return res.status(200).json(
     new ApiResponse(
@@ -159,47 +153,43 @@ export const getAllProducts = asyncHandler(async (req, res) => {
     sort = "latest",
   } = req.query;
   
-  // dynamic query object new
-  const query = {};
-
   // cachekey redis
   const cacheKey = `products:${JSON.stringify(req.query)}`;
+  //redis cached Product fetched
+  const cachedProducts = await getCachedData(cacheKey);
 
+  if(cachedProducts){
+    // serving from redis
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        cachedProducts,
+        "Products fetched from cache"
+      )
+    )
+  }
+
+  // dynamic query object new
+  const query = {};
   // search filter ka logic 
   if(search){
     query.title = {
-      $regex : search,
-      $options : "i",
+      $regex : search,  $options : "i",
     };
   }
-
   // category based filter
   if(category){
     query.category = new RegExp(category, "i");;
   }
   // sorting logic 
   let sortOption = {};
-  if(sort === "latest"){ sortOption = { createdAt : -1 }; }
-  if(sort === "priceLowToHigh"){ sortOption = { price :1 }; }
-  if(sort === "priceHighToLow"){ sortOption = { price: -1 }; }
+  if(sort === "latest") sortOption = { createdAt : -1 }; 
+  if(sort === "priceLowToHigh") sortOption = { price :1 };
+  if(sort === "priceHighToLow") sortOption = { price:-1 }; 
 
   //pagination logic
   const skip = (Number(page) -1) * Number(limit);
-  // fetch products
-
-  const cachedProducts = await redisClient.get(cacheKey);
-  // redisClient.get(keyName) se keyName par jo data hai wah receive hota hi 
-  if(cachedProducts){
-    console.log("serving from Redis Cache");
-    
-    return res.status(200).json(
-      new ApiResponse(
-        200,
-        JSON.parse(cachedProducts),
-        "Products fetched from cache"
-      )
-    )
-  }
+  // fetch products from DB
   const products = await Product
     .find(query)
     .sort(sortOption)
@@ -207,13 +197,7 @@ export const getAllProducts = asyncHandler(async (req, res) => {
     .limit(Number(limit));
 
   // total products count
-  const totalProducts =
-    await Product.countDocuments(query);
-  
-    /** -1 -> descending order mai jo new aaya wah first 
-     * $options: "i"
-        Case insensitive.
-    */
+  const totalProducts = await Product.countDocuments(query);
 
   const responseData = {
     products,
@@ -226,93 +210,99 @@ export const getAllProducts = asyncHandler(async (req, res) => {
       ),
     },
   };  
-  // set(keyaName,data) == isse se redis mai data store hota hai
-  // key : value  ke forat mai data store hota hai
-  await redisClient.set(
-    cacheKey,
-    JSON.stringify(responseData),{
-      EX: 60, // 60 seconds ke baad automatically delete ho jayega
-    }
-  );
+  // new redisCached set 
+  await setCachedData(cacheKey, responseData, 300);
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        responseData,
-        "Products fetched successfully"
-      )
-    );
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      responseData,
+      "Products fetched successfully"
+    )
+  );
 });
 
 export const getSingleProduct = asyncHandler(async (req, res) => {
   const { productId } = req.params;
+  //1 we can make unique cache key
+  const cacheKey = `product:${productId}`;
+  //2 ab redis se check karenge
+  const cachedProduct = await getCachedData(cacheKey);
+
+  if(cachedProduct){
+    return res.status(200).json(
+      new ApiResponse(
+        200, 
+        cachedProduct,
+        "Product fetched from cache"
+      )
+    )
+  }
+  // data fetched from DB
   const product = await Product.findById(productId);
-/** Product na mila tab us Id ka  */
+
   if(!product){
     throw new ApiError(404, "Product not found");
   }
+  // store in redis
+  await setCachedData(cacheKey, product, 900);
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        product,
-        "Product fetched successfully"
-      )
-    );
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      product,
+      "Product fetched successfully"
+    )
+  );
 });
 
-// reviews  controller here write
 export const addReview = asyncHandler(async(req, res) => {
   const { rating, comment, } = req.body;
   const { productId } = req.params;
+  // product fetched
   const product = await Product.findById(productId);
 
   if(!product){
     throw new ApiError(404,"Product not found");
   }
-  // agar purchase kiya hai tabhi review kar sakta hai nahi to nahi
+  // check user purched or not
   const hasPurchased = await Order.findOne({
     user : req.user._id,
     paymentStatus : "paid",
     "orderItems.product" : productId,
-    /* checks nested array documents.
-      Mongo automatically searches:
-      inside orderItems array 
-    */
-  })
+  });
+
   if(!hasPurchased){
     throw new ApiError(403,"Only buyers can review this product");
   }
-  // check already reviewd
+  // already reviewed or not
   const alreadyReviewed = product.reviews.find(
     (review) =>
       review.user.toString() === req.user._id.toString()
   );
+
   if (alreadyReviewed) {
     throw new ApiError(400, "You  already reviewed this product"
     );
   }  
 
-  // create new reviews
   const review = {
     user : req.user._id,
     name : req.user.name,
     rating: Number(rating),
     comment,
   };
+
   product.reviews.push(review);
   
-  /** Calculate averages reviews */
   product.numOfReviews = product.reviews.length;
   product.averageRating = product.reviews.reduce((acc, item) => 
     acc + item.rating, 0
   ) / product.reviews.length;
 
   await product.save();
+  // redis cache clean around product
+  await invalidateProductCache(productId);
 
   return res.status(201).json(
     new ApiResponse(
@@ -325,29 +315,49 @@ export const addReview = asyncHandler(async(req, res) => {
 
 export const getProductReviews = asyncHandler(async(req,res) => {
   const { productId } = req.params;
+  // pehle cacheKey banayenge
+  const cacheKey = `reviews:${productId}`;
+  // ab redis check
+  const cachedReviews = await getCachedData(cacheKey);
+
+  if(cachedReviews){
+    return res.status(200).json(
+      new ApiResponse(
+        200, 
+        cachedReviews, 
+        "Reviews fetched from cache"
+      )
+    );
+  }
+
   const product = await Product.findById(productId)
     .populate({
       path: "reviews.user",
       select: "name avatar",
     });
+
   if (!product) {
     throw new ApiError(404,"Product not found");
   }
   
+  const responseData = {
+    reviews: product.reviews,
+    averageRating: product.averageRating,
+    numOfReviews: product.numOfReviews,
+  };
+  // set Data  in cached
+  await setCachedData(cacheKey, responseData, 1800);
+
   return res.status(200).json(
     new ApiResponse(
       200,
-      {
-        reviews: product.reviews,
-        averageRating: product.averageRating,
-        numOfReviews: product.numOfReviews,
-      },
+      responseData,
       "Reviews fetched successfully"
     )
   );
 });
 
-export const getAdminProducts = asyncHandler(async (req,res) => {
+export const getSellerProducts = asyncHandler(async (req,res) => {
   const products = await Product.find({
     createdBy: req.user._id,
   }).sort({ createdAt: -1 });
@@ -356,7 +366,7 @@ export const getAdminProducts = asyncHandler(async (req,res) => {
     new ApiResponse(
       200,
       products,
-      "Products fetched successfully"
+      "Seller products fetched successfully"
     )
   )
 })

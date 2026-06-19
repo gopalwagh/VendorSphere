@@ -1,39 +1,23 @@
 import express from "express";
-import adminOnly from "../../middleware/adminMiddleware.js";
-import superAdminOnly from "../../middleware/superAdminMiddleware.js";
 import protect from "../../middleware/authMiddleware.js";
+import sellerOnly from "../../middleware/sellerMiddleware.js";
 import upload from "../../middleware/uploadMiddleware.js";
+
 import { 
-  getSellerProfile, 
+  getAnalytics, 
   applySellerProfile, 
-  getPendingApplications,
-  approveApplication,
-  rejectApplication, 
-  getSuperAdminDashboard, 
-  getApprovedApplications, 
-  getAllUsers, 
+  getSellerProfile, 
   updateSellerProfile 
 } from "./seller.controller.js";
 
 const router = express.Router();
 
-router.post("/apply", protect, adminOnly, upload.single("storeLogo"), applySellerProfile);
+router.get("/analytics", protect, sellerOnly, getAnalytics);
 
-router.get("/profile", protect, adminOnly,getSellerProfile);
+router.post("/apply", protect, sellerOnly, upload.single("storeLogo"), applySellerProfile);
 
-router.put("/profile", protect, adminOnly, updateSellerProfile);
+router.get("/profile", protect, sellerOnly, getSellerProfile);
 
-// superadmin
-router.get("/applications", protect, superAdminOnly, getPendingApplications);
-
-router.get("/applications/approved",protect, superAdminOnly, getApprovedApplications);
-
-router.get("/users",protect, superAdminOnly, getAllUsers);
-
-router.patch("/:sellerProfileId/approve", protect, superAdminOnly, approveApplication);
-
-router.patch("/:sellerProfileId/reject", protect, superAdminOnly, rejectApplication);
-
-router.get("/dashboard", protect, superAdminOnly, getSuperAdminDashboard);
+router.put("/profile", protect, sellerOnly, upload.single("storeLogo"), updateSellerProfile);
 
 export default router;

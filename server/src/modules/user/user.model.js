@@ -1,4 +1,9 @@
 import mongoose from "mongoose";
+import {
+  SELLER_ROLE,
+  SUPER_ADMIN_ROLE,
+  USER_ROLE,
+} from "../../utils/roleUtils.js";
 
 const addressSchema = new mongoose.Schema(
   {
@@ -45,8 +50,8 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["user", "admin", "superAdmin"],
-      default: "user",
+      enum: [USER_ROLE, SELLER_ROLE, SUPER_ADMIN_ROLE],
+      default: USER_ROLE,
     },
     
     sellerStatus: {

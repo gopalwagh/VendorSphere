@@ -1,9 +1,10 @@
 import User from "../modules/user/user.model.js";
 import asyncHandler from "./asyncHandler.js";
 import bcrypt from "bcryptjs";
+import { SUPER_ADMIN_ROLE } from "./roleUtils.js";
 
 export const createSuperAdmin = asyncHandler( async(req, res) => {
-  const existing = await User.findOne({ role: "superAdmin"});
+  const existing = await User.findOne({ role: SUPER_ADMIN_ROLE});
 
   if(existing) {
     console.log("SuperAdmin already exists");
@@ -16,7 +17,7 @@ export const createSuperAdmin = asyncHandler( async(req, res) => {
     name: "Super Admin",
     email: process.env.SUPERADMIN_EMAIL,
     password: hashedPassword,
-    role: "superAdmin",
+    role: SUPER_ADMIN_ROLE,
     sellerStatus: "approved"
   })  
 

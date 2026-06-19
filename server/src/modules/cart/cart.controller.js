@@ -4,6 +4,7 @@ import asyncHandler from "../../utils/asyncHandler.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import { getPopulatedCartResponse } from "../../utils/buildCartResponse.js";
+import { invalidateCartCache,getCachedData, setCachedData } from "../../utils/redisHelper.js";
 
 export const addToCart = asyncHandler(async (req, res) => {
   const { productId, quantity } = req.body;
@@ -43,7 +44,9 @@ export const addToCart = asyncHandler(async (req, res) => {
   }
 
   await cart.save();
-
+  // req.user._id se us specific user ka session flush hoga
+  await invalidateCartCache(req.user._id);
+  
   const responseData = await getPopulatedCartResponse(cart._id);
 
   return res.status(200).json(
@@ -56,6 +59,23 @@ export const addToCart = asyncHandler(async (req, res) => {
 });
 
 export const getCart = asyncHandler(async (req, res) => {
+  // create uniue cachekey
+  const cacheKey = `cart:${req.user._id}`;
+  // fetch parsed cart data from Redis Cache
+  const cachedCart = await getCachedData(cacheKey);
+  if(cachedCart){
+    console.log(`[CACHE HIT] Serving cart for User ${req.user._id} from Redis`);
+    return res.status(200).json(
+      new ApiResponse(
+        200, 
+        cachedCart, 
+        "Cart fetched from cache"
+      )
+    );
+  }
+
+  console.log(`[CACHE MISS] Fetching cart from MongoDB for User ${req.user._id}...`);
+  // cache miss fetch Database with populate
   const cart = await Cart.findOne({
     user: req.user._id,
   }).populate({
@@ -81,6 +101,9 @@ export const getCart = asyncHandler(async (req, res) => {
 
   const responseData = await getPopulatedCartResponse(cart);
 
+  // Save to Redis Cache fro 15 minutes
+  await setCachedData(cacheKey, responseData, 900);
+
   return res.status(200).json(
     new ApiResponse(
       200,
@@ -104,8 +127,10 @@ export const removeFromCart = asyncHandler(async (req, res) => {
   cart.items = cart.items.filter(
     (item) => item.product.toString() !== productId
   );
-
+  // database update succesfully
   await cart.save();
+  // req.user._id se us specific user ka session flush hoga
+  await invalidateCartCache(req.user._id);
 
   const responseData = await getPopulatedCartResponse(cart._id);
 
@@ -151,6 +176,8 @@ export const updateCartQuantity = asyncHandler(async(req, res) => {
   // finally update quqntity
   cartItem.quantity = quantity;
   await cart.save();
+   // req.user._id se us specific user ka session flush hoga
+  await invalidateCartCache(req.user._id);
 
   const responseData = await getPopulatedCartResponse(cart._id);
 

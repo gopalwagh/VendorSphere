@@ -1,19 +1,20 @@
 import ApiError from "../../utils/ApiError.js";
-import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
-
+import ApiResponse from "../../utils/ApiResponse.js";
 import cloudinary from "../../config/cloudinary.js";
 import uploadToCloudinary from "../../utils/uploadToCloudinary.js";
-
-import SellerProfile from "../user/sellerProfile.model.js";
 import User from "../user/user.model.js";
-import Order from "../order/order.model.js";
+import SellerProfile from "../user/sellerProfile.model.js";
+import { getAnalyticsService } from "./seller.service.js";
+import { getCachedData, setCachedData } from "../../utils/redisHelper.js";
 
 export const applySellerProfile = asyncHandler(async(req,res) =>  {
-  const { storeName, storeDescription, 
+  const { 
+    storeName, storeDescription, 
     phone, address, gstNumber, 
     panNumber, bankName, 
-    accountNumber, ifscCode, } = req.body;
+    accountNumber, ifscCode, 
+  } = req.body;
   // validation karenge ab
   if (!storeName || !storeDescription || 
     !phone || !address || !gstNumber || 
@@ -22,7 +23,7 @@ export const applySellerProfile = asyncHandler(async(req,res) =>  {
     throw new ApiError( 400, "All fields are required" ); 
   }
 
-  const existingProfile = await SellerProfile.findOne({ user: req.user._id, });
+  const existingProfile = await SellerProfile.findOne({ user: req.user._id });
 
   let sellerProfile;
 
@@ -83,10 +84,9 @@ export const applySellerProfile = asyncHandler(async(req,res) =>  {
     });
   }
   
-  await User.findByIdAndUpdate(
-    req.user._id,{
-      sellerStatus: "pending",
-    });
+  await User.findByIdAndUpdate(req.user._id, {
+    sellerStatus: "pending",
+  });
   
     return res.status(201).json(
       new ApiResponse(
@@ -102,8 +102,8 @@ export const getSellerProfile = asyncHandler(async (req,res) => {
   const sellerProfile = await SellerProfile.findOne({
     user: req.user._id,
   })
-    .populate("user", "name email role sellerStatus phone avatar addresses")
-    .populate("approvedBy", "name email");
+  .populate("user", "name email role sellerStatus phone avatar addresses")
+  .populate("approvedBy", "name email");
 
   return res.status(200).json(
     new ApiResponse(
@@ -159,332 +159,32 @@ export const updateSellerProfile = asyncHandler(async (req, res) => {
   );
 });
 
-export const getPendingApplications =
-  asyncHandler(async (req, res) => {
+export const getAnalytics = asyncHandler(async(req,res)=>{
+  const sellerId = req.user._id;
+  const cacheKey = `seller:analytics:${sellerId}`;
+  const cachedAnalytics = await getCachedData(cacheKey);
 
-    const applications =
-      await SellerProfile.find({
-        applicationStatus: "pending",
-      })
-      .populate(
-        "user",
-        "name email role"
-      );
-
+  if (cachedAnalytics) {
     return res.status(200).json(
       new ApiResponse(
-        200,
-        applications,
-        "Pending applications fetched"
-      )
-    );
-});
-
-export const approveApplication =
-  asyncHandler(async (req, res) => {
-
-    const sellerProfile = await SellerProfile.findById(
-      req.params.sellerProfileId
-    );
-
-    if (!sellerProfile) {
-      throw new ApiError(
-        404,
-        "Application not found"
-      );
-    }
-
-    sellerProfile.applicationStatus = "approved";
-
-    sellerProfile.approvedBy = req.user._id;
-
-    sellerProfile.approvedAt = new Date();
-
-    await sellerProfile.save();
-
-    await User.findByIdAndUpdate(
-      sellerProfile.user,
-      {
-        sellerStatus: "approved",
-      }
-    );
-
-    return res.status(200).json(
-      new ApiResponse(
-        200,
-        sellerProfile,
-        "Application approved"
-      )
-    );
-});
-
-export const rejectApplication =
-  asyncHandler(async (req, res) => {
-
-    const { reason } = req.body;
-
-    const sellerProfile = await SellerProfile.findById(
-        req.params.sellerProfileId
-      );
-
-    if (!sellerProfile) {
-      throw new ApiError(
-        404,
-        "Application not found"
-      );
-    }
-
-    sellerProfile.applicationStatus = "rejected";
-
-    sellerProfile.rejectionReason = reason;
-
-    await sellerProfile.save();
-
-    await User.findByIdAndUpdate(
-      sellerProfile.user,
-      {
-        sellerStatus: "rejected",
-      }
-    );
-
-    return res.status(200).json(
-      new ApiResponse(
-        200,
-        sellerProfile,
-        "Application rejected"
-      )
-    );
-});
-
-export const getApprovedApplications = asyncHandler(async(req,res) => {
-  const applications = await SellerProfile.find({
-    applicationStatus: "approved",
-  }).populate(
-    "user", "name email"
-  ).sort({
-    updatedAt: -1,
-  });
-
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      applications,
-      "Approved application fetched"
-    )
-  )
-})
-
-export const getAllUsers = asyncHandler( async(req,res) => {
-  const users = await User.find({ role: "user" })
-  .select("-password")
-  .sort({
-    createdAt:-1
-  });
-
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      users,
-      "Users fetched"
-    )
-  )
-});
-
-export const getSuperAdminDashboard = asyncHandler(
-  async (req, res) => {
-
-    const [
-      totalUsers,
-      totalSellers,
-      pendingApplications,
-      sellerStatusStats,
-      revenueChart,
-      topCategories,
-      topSellers,
-    ] = await Promise.all([
-
-      User.countDocuments(),
-
-      User.countDocuments({
-        role: "admin",
-        sellerStatus: "approved",
-      }),
-
-      SellerProfile.countDocuments({
-        applicationStatus: "pending",
-      }),
-
-      SellerProfile.aggregate([
-        {
-          $group: {
-            _id: "$applicationStatus",
-            count: {
-              $sum: 1,
-            },
-          },
-        },
-      ]),
-
-      Order.aggregate([
-        {
-          $unwind: "$orderItems",
-        },
-
-        {
-          $group: {
-            _id: {
-              $dateToString: {
-                format: "%Y-%m",
-                date: "$createdAt",
-              },
-            },
-
-            revenue: {
-              $sum:
-              "$orderItems.commissionAmount",
-            },
-          },
-        },
-
-        {
-          $sort: {
-            _id: 1,
-          },
-        },
-      ]),
-
-      Order.aggregate([
-        {
-          $unwind: "$orderItems",
-        },
-
-        {
-          $group: {
-            _id:
-            "$orderItems.productCategory",
-
-            sold: {
-              $sum:
-              "$orderItems.quantity",
-            },
-          },
-        },
-
-        {
-          $sort: {
-            sold: -1,
-          },
-        },
-
-        {
-          $limit: 5,
-        },
-      ]),
-
-      Order.aggregate([
-        {
-          $unwind: "$orderItems",
-        },
-
-        {
-          $group: {
-
-            _id:
-            "$orderItems.seller",
-
-            revenue: {
-              $sum:
-              "$orderItems.sellerAmount",
-            },
-
-            orders: {
-              $sum:
-              "$orderItems.quantity",
-            },
-          },
-        },
-
-        {
-          $sort: {
-            revenue: -1,
-          },
-        },
-
-        {
-          $limit: 5,
-        },
-
-        {
-          $lookup: {
-            from: "users",
-
-            localField: "_id",
-
-            foreignField: "_id",
-
-            as: "seller",
-          },
-        },
-
-        {
-          $unwind: "$seller",
-        },
-
-        {
-          $project: {
-            sellerName:
-            "$seller.name",
-
-            revenue: 1,
-
-            orders: 1,
-          },
-        },
-      ]),
-    ]);
-
-    const platformRevenue =
-      await Order.aggregate([
-        {
-          $unwind: "$orderItems",
-        },
-
-        {
-          $group: {
-            _id: null,
-
-            total: {
-              $sum:
-              "$orderItems.commissionAmount",
-            },
-          },
-        },
-      ]);
-
-    const summary = {
-
-      totalUsers,
-
-      totalSellers,
-
-      pendingApplications,
-
-      platformRevenue:
-      platformRevenue[0]?.total || 0,
-    };
-
-    return res.status(200).json(
-      new ApiResponse(
-        200,
-        {
-          summary,
-          revenueChart,
-          sellerStatusStats,
-          topCategories,
-          topSellers,
-        },
-        "Super admin dashboard fetched"
+        200, 
+        cachedAnalytics, 
+        "Analytics fetched from cache"
       )
     );
   }
-);
+
+  const analytics = await getAnalyticsService(
+    sellerId
+  );
+
+  await setCachedData(cacheKey, analytics, 1800);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      analytics,
+      "Analytics fetched"
+    )
+  );
+});

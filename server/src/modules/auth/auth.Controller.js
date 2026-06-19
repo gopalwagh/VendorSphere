@@ -6,6 +6,7 @@ import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import { generateAccessToken, generateRefreshToken } from "../../utils/generateToken.js";
 import { redisClient } from "../../config/redis.js"
+import { REGISTERABLE_ROLES, normalizeRole } from "../../utils/roleUtils.js";
 
 export const registerUser = asyncHandler(async (req ,res) => {
   const { name, email, password, role } = req.body;
@@ -13,6 +14,13 @@ export const registerUser = asyncHandler(async (req ,res) => {
   if(!name || !email || !password || !role){
     throw new ApiError(400, "All Fields are required");
   }
+
+  const normalizedRole = normalizeRole(role);
+
+  if (!REGISTERABLE_ROLES.includes(normalizedRole)) {
+    throw new ApiError(400, "Only user and seller registrations are allowed");
+  }
+
   const existingUser = await User.findOne({ email });
   if(existingUser){
     throw new ApiError(409, "User already exists")
@@ -22,7 +30,7 @@ export const registerUser = asyncHandler(async (req ,res) => {
   const user = await User.create({
     name,
     email,
-    role,
+    role: normalizedRole,
     password : hashedpassword,
   });
 
@@ -169,6 +177,8 @@ export const updateUserProfile = asyncHandler(async (req, res) => {
   if (!user) {
     throw new ApiError(404, "User not found");
   }
+
+  user.role = normalizeRole(user.role);
 
   if (name !== undefined) user.name = name;
   if (phone !== undefined) user.phone = phone;

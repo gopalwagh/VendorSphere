@@ -15,6 +15,8 @@ import emailQueue from "../../queues/email.queue.js";
 import generateInvoice from "../../services/generateInvoice.js";
 import Coupon from "../coupon/coupon.model.js";
 import calculateCartTotal from "../../utils/calculateCartTotal.js";
+import { redisClient } from "../../config/redis.js";
+import { isPrivilegedOrderRole } from "../../utils/roleUtils.js";
 
 const ORDER_STATUSES =
   Order.schema.path("orderStatus").enumValues;
@@ -183,6 +185,9 @@ export const verifyPayment = asyncHandler(async (req, res) => {
       message: "Payment verified and order is processing",
     });
 
+    const uniqueSellerIds = new Set();
+    const affectedProductIds = [];
+
     for (const item of order.orderItems) {
       const updatedProduct = await Product.findOneAndUpdate(
         {
@@ -208,6 +213,9 @@ export const verifyPayment = asyncHandler(async (req, res) => {
           "Product no longer has enough stock"
         );
       }
+      // Tracking for cache invalidation later
+      affectedProductIds.push(item.product.toString());
+      uniqueSellerIds.add(item.seller.toString());
 
       const itemTotal = item.price * item.quantity;
       const commissionAmount = (itemTotal * item.commissionPercent) / 100;
@@ -225,7 +233,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     }
 
     await order.save({ session });
-
+  
     await Cart.findOneAndDelete(
       {
         user: order.user,
@@ -236,6 +244,19 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     );
 
     await session.commitTransaction();
+    // ab redis invalidation block (After DB)
+    try{
+      // product data clean from redis
+      for(const productId of affectedProductIds){
+        await redisClient.del(`product:${productId}`);
+      }
+      // Linked Sellers ka analytics cache delete
+      for (const sellerId of uniqueSellerIds) {
+        await redisClient.del(`seller:analytics:${sellerId}`);
+      }
+    } catch(error){
+      console.error("Redis cache clearing failed post-order, but DB is saved:", error);
+    }
 
     const user = await User.findById(order.user);
 
@@ -304,7 +325,7 @@ export const getMyOrders = asyncHandler(async (req, res) => {
     })
     .sort({
       createdAt: -1,
-    });
+    })
 
   return res.status(200).json(
     new ApiResponse(
@@ -353,10 +374,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
   }
 
   if(order.paymentStatus !== "paid"){
-    throw new ApiError(
-        400,
-        "Cannot update unpaid order"
-    );
+    throw new ApiError(400, "Cannot update unpaid order");
   }
   
   const priority = [ "pending", "processing", "packed", "shipped", "out_for_delivery", "delivered" ];
@@ -437,10 +455,7 @@ export const downloadInvoice = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Order not found");
   }
 
-  if (
-    req.user.role !== "admin" &&
-    order.user.toString() !== req.user._id.toString()
-  ) {
+  if (!isPrivilegedOrderRole(req.user.role) && order.user.toString() !== req.user._id.toString()) {
     throw new ApiError(
       403,
       "Not authorized to download this invoice"
@@ -471,10 +486,7 @@ export const trackOrder = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Order not found");
   }
 
-  if (
-    req.user.role !== "admin" &&
-    order.user.toString() !== req.user._id.toString()
-  ) {
+  if (!isPrivilegedOrderRole(req.user.role) && order.user.toString() !== req.user._id.toString()) {
     throw new ApiError(
       403,
       "Not authorized to view this order"
@@ -494,7 +506,7 @@ export const trackOrder = asyncHandler(async (req, res) => {
   );
 });
 
-export const getAdminOrders = asyncHandler(async(req, res) => {
+export const getSellerOrders = asyncHandler(async(req, res) => {
   const orders = await Order.find({
     "orderItems.seller": req.user._id,
   })
@@ -502,7 +514,7 @@ export const getAdminOrders = asyncHandler(async(req, res) => {
   .populate("orderItems.product", "title price images stock")
   .sort({ createdAt: -1, });
 
-  const adminOrders = orders.map((order) => {
+  const sellerOrders = orders.map((order) => {
     const sellerItems = order.orderItems
       .filter((item) => item.seller.toString() === req.user._id.toString());
 
@@ -528,9 +540,8 @@ export const getAdminOrders = asyncHandler(async(req, res) => {
   return res.status(200).json(
     new ApiResponse(
       200,
-      adminOrders,
-      "Admin orders fetched successfully"
+      sellerOrders,
+      "Seller orders fetched successfully"
     )
   )
 })
-
