@@ -1,11 +1,11 @@
 import "./NotFound.css";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { getRoleHomePath } from "../../features/auth/roleUtils";
 
 const NotFound = () => {
   const { user } = useSelector((state) => state.auth);
-  const role = user?.role;
-  const homeLink = role === "superAdmin" ? "/super-admin" : role === "admin" ? "/dashboard" : "/";
+  const homeLink = getRoleHomePath(user?.role);
 
   return (
     <div className="not-found">

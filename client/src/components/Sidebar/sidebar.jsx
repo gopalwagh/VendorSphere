@@ -3,9 +3,12 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { FaBars } from "react-icons/fa";
+import { ROLES, getRoleLabel, normalizeRole } from "../../features/auth/roleUtils";
 
 const Sidebar = () => {
   const { user } = useSelector((state) => state.auth);
+  const normalizedRole = normalizeRole(user?.role);
+  const isSuperAdmin = normalizedRole === ROLES.SUPER_ADMIN;
   const isApproved = user?.sellerStatus === "approved";
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -16,7 +19,7 @@ const Sidebar = () => {
     },
   ];
 
-  const adminLinks = [
+  const sellerDashboardLinks = [
     {
       label: "Dashboard",
       path: "/dashboard",
@@ -36,6 +39,10 @@ const Sidebar = () => {
     {
       label: "Analytics",
       path: "/dashboard/analytics",
+    },
+    {
+      label: "Profile",
+      path: "/dashboard/profile",
     },
   ];
 
@@ -60,9 +67,13 @@ const Sidebar = () => {
       label: "Coupons",
       path: "/super-admin/coupons",
     },
+    {
+      label: "Profile",
+      path: "/super-admin/profile",
+    },
   ];
 
-  const links = user?.role === "superAdmin" ? superAdminLinks : isApproved ? adminLinks : sellerLinks;
+  const links = isSuperAdmin ? superAdminLinks : isApproved ? sellerDashboardLinks : sellerLinks;
 
   return (
     <>
@@ -75,7 +86,7 @@ const Sidebar = () => {
       )}
 
       <aside className={sidebarOpen ? "sidebar open" : "sidebar"}>
-        <h2>{user?.role === "superAdmin" ? "Super Admin" : "Seller Panel"}</h2>
+        <h2>{isSuperAdmin ? getRoleLabel(ROLES.SUPER_ADMIN) : "Seller Panel"}</h2>
 
         {links.map((link) => (
           <NavLink

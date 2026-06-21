@@ -1,6 +1,7 @@
 import { addToCartApi, getCartApi, updateCartApi, removeCartApi } from "../../api/cartApi";
 import { clearCoupon } from "../coupon/couponSlice";
 import { setAddToCartLoading, setCart, setLoading } from "./cartSlice";
+import { ROLES, normalizeRole } from "../auth/roleUtils";
 
 export const getCartThunk = () => {
   return async (dispatch, getState) => {
@@ -8,8 +9,9 @@ export const getCartThunk = () => {
       dispatch(setLoading(true));
 
       const authState = getState().auth;
+      const role = normalizeRole(authState.user?.role);
 
-      if (!authState.isAuthenticated || authState.user?.role !== "user") {
+      if (!authState.isAuthenticated || role !== ROLES.USER) {
         return {
           success: true,
           data: {

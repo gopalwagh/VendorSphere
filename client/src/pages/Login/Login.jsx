@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { loginThunk } from "../../features/auth/authThunk";
 import { useNavigate } from "react-router-dom";
+import { ROLES, getRoleHomePath, normalizeRole } from "../../features/auth/roleUtils";
 
 const Login = () => {
   const loading = useSelector((state) => state.auth.loading);
@@ -29,12 +30,13 @@ const Login = () => {
     if (result.success) {
       toast.success("Login Successful");
 
-      if (result.role === "superadmin") {
-        navigate("/super-admin");
+      const role = normalizeRole(result.role);
 
-      } else if (result.role === "admin") {
+      if (role === ROLES.SUPER_ADMIN) {
+        navigate(getRoleHomePath(role));
+      } else if (role === ROLES.SELLER) {
         if (result.sellerStatus === "approved") {
-          navigate("/dashboard");
+          navigate(getRoleHomePath(role));
         } else {
           navigate("/seller/application");
         }

@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { getAdminProductApi, getAllProducts, getProductById, updateProductApi, createProductApi, deleteProductApi } from "../../api/productApi";
 
-import { setProduct, setError, setLoading, setSelectedProduct, setAdminProducts, } from "./productSlice";
+import { setProduct, setError, setLoading, setSelectedProduct, setSellerProducts } from "./productSlice";
 
 export const fetchProducts = (filters) => {
   return async (dispatch) => {
@@ -51,7 +51,7 @@ export const fetchAdminProductsThunk = () => {
       const response = 
       await getAdminProductApi();
       // data comes in response.data
-      dispatch(setAdminProducts(response.data));
+      dispatch(setSellerProducts(response.data));
 
     } catch( error ){
       dispatch(

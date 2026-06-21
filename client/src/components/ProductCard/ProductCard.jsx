@@ -5,38 +5,52 @@ import { FaStar } from "react-icons/fa";
 import useAddToCart from "../../hooks/useAddToCart";
 
 const ProductCard = ({ product }) => {
+  const { addToCart } = useAddToCart();
+
   if (!product) {
     return null;
   }
 
-  const { addToCart } = useAddToCart();
   const isOutOfStock = product.stock <= 0;
+  const averageRating = Number(product.averageRating || 0).toFixed(1);
+  const reviewCount = product.numOfReviews || 0;
 
   return (
     <article className="product-card">
-      <Link to={`/products/${product._id}`} className="product-link">
+      <Link to={`/products/${product._id}`} className="product-media-link">
         <div className="product-image-wrap">
           <img src={product?.images?.[0]?.url} alt={product.title} />
-        </div>
-        <div className="product-body">
-          <span className="category">{product.category}</span>
-          <h3>{product.title}</h3>
-          <div className="rating">
-            <FaStar />
-            <span>{product.averageRating || 0}</span>
-          </div>
-          <div className="price-box">
-            <span className="price">Rs. {product.price}</span>
-          </div>
+          {isOutOfStock && <span className="stock-badge">Out of stock</span>}
         </div>
       </Link>
-      <button
-        className="cart-btn"
-        onClick={() => addToCart(product)}
-        disabled={isOutOfStock}
-      >
-        {isOutOfStock ? "Out Of Stock" : "Add To Cart"}
-      </button>
+
+      <div className="product-body">
+        <span className="category">{product.category}</span>
+        <Link to={`/products/${product._id}`} className="product-title-link">
+          <h3>{product.title}</h3>
+        </Link>
+        <div className="price-row">
+          <span className="price-label">Price</span>
+          <span className="price">Rs. {product.price}</span>
+        </div>
+      </div>
+
+      <div className="product-footer">
+        <div className="product-rating-meta">
+          <div className="rating">
+            <FaStar />
+            <span>{averageRating}</span>
+          </div>
+          <span className="review-count">{reviewCount} reviews</span>
+        </div>
+        <button
+          className="cart-btn"
+          onClick={() => addToCart(product)}
+          disabled={isOutOfStock}
+        >
+          {isOutOfStock ? "Out Of Stock" : "Add To Cart"}
+        </button>
+      </div>
     </article>
   );
 };

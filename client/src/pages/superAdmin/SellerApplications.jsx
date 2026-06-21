@@ -1,14 +1,13 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { approveApplicationThunk, fetchPendingApplicationThunk, rejectApplicationThunk } from "../../features/seller/sellerThunk";
+import { approveApplicationThunk, fetchPendingApplicationThunk, rejectApplicationThunk } from "../../features/superAdmin/superAdminThunk";
 import Loader from "../../components/Loader/Loader";
 import toast from "react-hot-toast";
 import { FiInbox } from "react-icons/fi";
-import "./SellerApplications.css";
 
 const SellerApplications = () => {
   const dispatch = useDispatch();
-  const { pendingApplications, loading } = useSelector((state) => state.seller);
+  const { pendingApplications, loading } = useSelector((state) => state.superAdmin);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAppId, setSelectedAppId] = useState(null);
@@ -22,6 +21,7 @@ const SellerApplications = () => {
     const result = await dispatch(approveApplicationThunk(id));
     if (result.success) {
       toast.success("Seller Approved Successfully");
+      dispatch(fetchPendingApplicationThunk());
     } else {
       toast.error(result.message || "Failed to approve seller");
     }
@@ -56,6 +56,7 @@ const SellerApplications = () => {
     if (result.success) {
       toast.success("Seller Rejected");
       closeRejectModal();
+      dispatch(fetchPendingApplicationThunk());
     } else {
       toast.error(result.message || "Failed to reject seller");
     }

@@ -28,7 +28,21 @@ const orderSlice = createSlice({
     },
     setLoading: (state, action) =>{
       state.loading = action.payload;
-    }
+    },
+    resetOrderState: () => ({
+      orders: [],
+      loading: false,
+      error: null,
+      adminOrders: [],
+      dashboard: {
+        totalOrders: 0,
+        totalProducts: 0,
+        totalRevenue: 0,
+        totalEarnings: 0,
+        pendingOrders: 0,
+        deliveredOrders: 0,
+      },
+    }),
   },
   extraReducers: (builder) => {
     builder
@@ -45,5 +59,5 @@ const orderSlice = createSlice({
   },
 });
 
-export const { setAdminOrders, setLoading, setDashboard } = orderSlice.actions;
+export const { setAdminOrders, setLoading, setDashboard, resetOrderState } = orderSlice.actions;
 export default orderSlice.reducer;

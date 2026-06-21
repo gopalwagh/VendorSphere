@@ -64,6 +64,45 @@
   color: var(--primary);
 }
 
+.status-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.status-banner strong {
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.status-banner.pending {
+  border-color: rgba(249, 115, 22, 0.22);
+  background: rgba(249, 115, 22, 0.08);
+}
+
+.status-banner.pending strong {
+  color: var(--accent);
+}
+
+.status-banner.rejected {
+  border-color: rgba(220, 38, 38, 0.22);
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.status-banner.rejected strong {
+  color: var(--danger);
+}
+
+.status-banner span {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

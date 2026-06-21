@@ -110,6 +110,12 @@
   font-weight: 600;
   font-size: 0.95rem;
   color: var(--text);
+  text-decoration: none;
+}
+
+.user-chip:hover,
+.mobile-user:hover {
+  color: var(--primary);
 }
 
 .logout-btn {
@@ -173,7 +179,7 @@
   color: var(--muted);
 }
 
-.mobile-menu a, .mobile-menu .user-chip, .mobile-menu .logout-btn {
+.mobile-menu a, .mobile-menu .user-chip, .mobile-menu .mobile-user, .mobile-menu .logout-btn {
   padding: 8px 0;
   font-size: 1rem;
   color: var(--text);
@@ -181,6 +187,10 @@
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.mobile-user {
+  font-weight: 600;
 }
 
 @media (max-width: 900px) {

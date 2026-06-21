@@ -4,6 +4,7 @@ import { checkAuth } from "./features/auth/authThunk";
 import { useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux";
 import { getCartThunk } from "./features/cart/cartThunk";
+import { ROLES, normalizeRole } from "./features/auth/roleUtils";
 
 const App = () => { 
   const dispatch = useDispatch();
@@ -14,7 +15,7 @@ const App = () => {
   },[dispatch]);
 
   useEffect(() => {
-    if (fetchedUser && isAuthenticated && user?.role === "user") {
+    if (fetchedUser && isAuthenticated && normalizeRole(user?.role) === ROLES.USER) {
       dispatch(getCartThunk());
     }
   }, [dispatch, fetchedUser, isAuthenticated, user?.role]);

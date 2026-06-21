@@ -20,7 +20,7 @@ export const getProductById = (productId) => {
 
 export const getAdminProductApi = async () => {
   const response = await axiosInstance.get(
-    "products/admin/products"
+    "/products/seller/products"
   );
   return response.data;
 };
@@ -58,3 +58,13 @@ export const deleteProductApi = async(productId) => {
   const response = await axiosInstance.delete(`/products/${productId}`);
   return response.data;
 }
+
+export const postReviewApi = async (productId, reviewData) => {
+  const response = await axiosInstance.post(`/products/review/${productId}`, reviewData);
+  return response.data;
+};
+
+export const getProductReviewsApi = async (productId) => {
+  const response = await axiosInstance.get(`/products/reviews/${productId}`);
+  return response.data;
+};

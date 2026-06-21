@@ -1,77 +1,43 @@
-import { createSlice } from "@reduxjs/toolkit"
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  sellerProfile: null,
-  loading: false,
-  error: null,
-  pendingApplications: [],
-  approvedApplications: [],
-  rejectedApplications: [],
-  allUsers: [],
-  superAdminDashboard: {
+  analytics: {
     summary: {},
     revenueChart: [],
-    sellerStatusStats: [],
+    ordersChart: [],
     topCategories: [],
-    topSellers: [],
+    bestCategory: {},
+    topProducts: [],
+    topRatedProducts: [],
   },
-}
+  loading: false,
+  error: null,
+};
 
 const sellerSlice = createSlice({
-  name: "sellers",
+  name: "seller",
   initialState,
   reducers: {
-
-    setSellerProfile: (state, action) => {
-      state.sellerProfile = action.payload;
-    },
-
-    setSellerLoading: (state, action) => {
-      state.loading = action.payload;
-    },
-
-    setSellerError: (state, action) => {
-      state.error = action.payload;
-    },
-
-    resetSellerState: (state) => {
-      state.sellerProfile = null;
-      state.loading = false;
+    setAnalytics: (state, action) => {
+      state.analytics = action.payload;
       state.error = null;
     },
-
-    setAllUsers: (state,action) => {
-      state.allUsers = action.payload;
+    setLoading: (state, action) => {
+      state.loading = action.payload;
     },
-
-    setPendingApplications: (state,action) => {
-      state.pendingApplications = action.payload;
+    setError: (state, action) => {
+      state.error = action.payload;
+      state.loading = false;
     },
-
-    setApprovedApplications: (state,action) => {
-      state.approvedApplications = action.payload;
+    resetAnalytics: (state) => {
+      state.analytics = initialState.analytics;
+      state.error = null;
+      state.loading = false;
     },
-
-    setRejectedApplications: (state,action) => {
-      state.rejectedApplications = action.payload;
-    },
-    setSuperAdminDashboard : (state, action) => {
-      state.superAdminDashboard = action.payload;
-    }
   },
-
 });
 
-export const { 
-  setSellerError, 
-  setSellerLoading, 
-  setSellerProfile, 
-  resetSellerState, 
-  setRejectedApplications, 
-  setApprovedApplications, 
-  setPendingApplications, 
-  setSuperAdminDashboard, 
-  setAllUsers, 
-} = sellerSlice.actions;
+export const { setAnalytics, setLoading, setError, resetAnalytics } =
+  sellerSlice.actions;
 
 export default sellerSlice.reducer;

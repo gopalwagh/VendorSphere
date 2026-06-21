@@ -1,18 +1,22 @@
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import "./Application.css";
 import toast from "react-hot-toast";
-import { applySellerProfileThunk } from "../../features/seller/sellerThunk";
+import { applySellerProfileThunk } from "../../features/superAdmin/superAdminThunk";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../components/Loader/Loader";
-import { useState } from "react";
 import { FiUploadCloud, FiInfo, FiFileText, FiDollarSign } from "react-icons/fi";
+import { ROLES, normalizeRole } from "../../features/auth/roleUtils";
 
 const SellerApplication = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { loading } = useSelector((state) => state.seller);
+  const { loading, sellerProfile } = useSelector((state) => state.superAdmin);
+  const { user } = useSelector((state) => state.auth);
+  const normalizedRole = normalizeRole(user?.role);
+  const isSeller = normalizedRole === ROLES.SELLER;
   const [logoPreview, setLogoPreview] = useState(null);
 
   const {
@@ -20,24 +24,57 @@ const SellerApplication = () => {
     handleSubmit,
     formState: { errors },
     watch,
+    reset,
   } = useForm();
 
-  // Watch for file changes to show preview
-  const logoFile = watch("storeLogo");
-  
-  if (logoFile && logoFile.length > 0 && !logoPreview) {
-    const file = logoFile[0];
-    if (file) {
-      setLogoPreview(URL.createObjectURL(file));
+  useEffect(() => {
+    if (!sellerProfile || !isSeller) {
+      return;
     }
-  }
+
+    reset({
+      storeName: sellerProfile.storeName || "",
+      storeDescription: sellerProfile.storeDescription || "",
+      phone: sellerProfile.phone || "",
+      address: sellerProfile.address || "",
+      gstNumber: sellerProfile.gstNumber || "",
+      panNumber: sellerProfile.panNumber || "",
+      bankName: sellerProfile.bankName || "",
+      accountNumber: sellerProfile.accountNumber || "",
+      ifscCode: sellerProfile.ifscCode || "",
+    });
+
+    if (sellerProfile.storeLogo?.url) {
+      setLogoPreview(sellerProfile.storeLogo.url);
+    }
+  }, [sellerProfile, reset, isSeller]);
+
+  const logoFile = watch("storeLogo");
+  const selectedLogoFile = logoFile?.[0] || null;
+
+  useEffect(() => {
+    if (selectedLogoFile) {
+      const nextPreview = URL.createObjectURL(selectedLogoFile);
+      setLogoPreview(nextPreview);
+      return () => URL.revokeObjectURL(nextPreview);
+    }
+
+    if (sellerProfile?.storeLogo?.url) {
+      setLogoPreview(sellerProfile.storeLogo.url);
+      return undefined;
+    }
+
+    setLogoPreview(null);
+    return undefined;
+  }, [selectedLogoFile, sellerProfile]);
 
   const onSubmit = async (data) => {
     const formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       if (key === "storeLogo") {
-        if (value && value.length > 0) {
-          formData.append("storeLogo", value[0]);
+        const file = value?.[0] || null;
+        if (file) {
+          formData.append("storeLogo", file);
         }
       } else {
         formData.append(key, value);
@@ -48,7 +85,7 @@ const SellerApplication = () => {
 
     if (result.success) {
       toast.success("Application Submitted Successfully");
-      navigate("/seller/pending");
+      navigate("/seller/application");
     } else {
       toast.error(result.message || "Failed to submit application");
     }
@@ -60,11 +97,26 @@ const SellerApplication = () => {
     <div className="store-form-page">
       <div className="store-form-wrapper">
         <div className="store-form-header">
-          <h1>Become a Seller</h1>
-          <p>Fill out the application below to start selling on our platform.</p>
+        <h1>Become a Seller</h1>
+          <p>
+            {sellerProfile?.applicationStatus === "rejected"
+              ? "Update the details below and resubmit your seller application."
+              : "Fill out the application below to start selling on our platform."}
+          </p>
         </div>
 
         <form className="store-form" onSubmit={handleSubmit(onSubmit)}>
+          {sellerProfile?.applicationStatus && (
+            <div className={`status-banner ${sellerProfile.applicationStatus}`}>
+              <strong>{sellerProfile.applicationStatus}</strong>
+              {sellerProfile.applicationStatus === "rejected" && sellerProfile.rejectionReason ? (
+                <span>{sellerProfile.rejectionReason}</span>
+              ) : (
+                <span>We will review your submission as soon as possible.</span>
+              )}
+            </div>
+          )}
+
           {/* SECTION: Store Info */}
           <div className="form-section">
             <h3 className="section-title">
@@ -86,9 +138,13 @@ const SellerApplication = () => {
                 <label>Store Description</label>
                 <textarea
                   placeholder="Briefly describe what you sell"
-                  {...register("storeDescription")}
+                  {...register("storeDescription", {
+                    required: "Store description is required",
+                  })}
                   rows="3"
+                  className={errors.storeDescription ? "input-error" : ""}
                 />
+                {errors.storeDescription && <span className="error-message">{errors.storeDescription.message}</span>}
               </div>
 
               <div className="input-group">

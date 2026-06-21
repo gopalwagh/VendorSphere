@@ -1,13 +1,13 @@
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "../../components/Loader/Loader";
 import { useEffect } from "react";
-import { getAllUsersThunk } from "../../features/seller/sellerThunk";
 import { FiUsers } from "react-icons/fi";
-import "./Users.css";
+import { ROLES, getRoleLabel, normalizeRole } from "../../features/auth/roleUtils";
+import { getAllUsersThunk } from "../../features/superAdmin/superAdminThunk";
 
 const Users = () => {
   const dispatch = useDispatch();
-  const { allUsers, loading } = useSelector((state) => state.seller);
+  const { allUsers, loading } = useSelector((state) => state.superAdmin);
 
   useEffect(() => {
     dispatch(getAllUsersThunk());
@@ -39,28 +39,38 @@ const Users = () => {
               </tr>
             </thead>
             <tbody>
-              {allUsers.map((user) => (
-                <tr key={user._id}>
-                  <td>
-                    <strong>{user.name}</strong>
-                  </td>
-                  <td>
-                    <span style={{ color: "var(--muted)" }}>{user.email}</span>
-                  </td>
-                  <td>
-                    <span className={`status-badge ${user.role === 'superAdmin' ? 'rejected' : user.role === 'admin' ? 'approved' : 'pending'}`}>
-                      {user.role}
-                    </span>
-                  </td>
-                  <td>
-                    {new Date(user.createdAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </td>
-                </tr>
-              ))}
+              {allUsers.map((user) => {
+                const normalizedRole = normalizeRole(user.role);
+                const roleClass =
+                  normalizedRole === ROLES.SUPER_ADMIN
+                    ? "rejected"
+                    : normalizedRole === ROLES.SELLER
+                      ? "approved"
+                      : "pending";
+
+                return (
+                  <tr key={user._id}>
+                    <td>
+                      <strong>{user.name}</strong>
+                    </td>
+                    <td>
+                      <span style={{ color: "var(--muted)" }}>{user.email}</span>
+                    </td>
+                    <td>
+                      <span className={`status-badge ${roleClass}`}>
+                        {getRoleLabel(normalizedRole)}
+                      </span>
+                    </td>
+                    <td>
+                      {new Date(user.createdAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

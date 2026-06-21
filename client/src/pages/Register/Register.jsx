@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useDispatch, useSelector } from  "react-redux";
 import { registerThunk } from "../../features/auth/authThunk";
+import { ROLES } from "../../features/auth/roleUtils";
 
 const Register = () => {
   const loading = useSelector((state) => state.auth.loading);
@@ -79,18 +80,18 @@ const Register = () => {
         <div className="role-toggle">
           <button
             type="button"
-            className={role === "user" ? "active" : ""}
-            onClick={() => setRole("user")}
+            className={role === ROLES.USER ? "active" : ""}
+            onClick={() => setRole(ROLES.USER)}
           >
             User
           </button>
 
           <button
             type="button"
-            className={role === "admin" ? "active" : ""}
-            onClick={() => setRole("admin")}
+            className={role === ROLES.SELLER ? "active" : ""}
+            onClick={() => setRole(ROLES.SELLER)}
           >
-            Admin
+            Seller
           </button>
         </div>
         <button disabled={loading}>

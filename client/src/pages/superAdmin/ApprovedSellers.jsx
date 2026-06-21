@@ -2,16 +2,15 @@ import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Loader from "../../components/Loader/Loader.jsx";
-import { fetchApprovedApplicationsThunk, rejectApplicationThunk } from "../../features/seller/sellerThunk.js";
+import { fetchApprovedApplicationsThunk, rejectApplicationThunk } from "../../features/superAdmin/superAdminThunk.js";
 import { useEffect, useState } from "react";
 import { FiCheckCircle } from "react-icons/fi";
-import "./ApprovedSellers.css";
 
 const ApprovedSellers = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { approvedApplications, loading } = useSelector((state) => state.seller);
+  const { approvedApplications, loading } = useSelector((state) => state.superAdmin);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAppId, setSelectedAppId] = useState(null);

@@ -8,6 +8,12 @@ import { useSearchParams } from "react-router-dom";
 
 const categoryOptions = ["electronics", "fashion", "shoes", "books", "mobiles", "gaming"];
 
+const sortLabels = {
+  priceLowToHigh: "Price low to high",
+  priceHighToLow: "Price high to low",
+  latest: "Latest",
+};
+
 const Products = () => {
   const [page, setPage] = useState(1);
   const [category, setCategory] = useState("");
@@ -17,7 +23,6 @@ const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const dispatch = useDispatch();
-
   const { products, loading, pagination } = useSelector((state) => state.product);
 
   useEffect(() => {
@@ -43,24 +48,58 @@ const Products = () => {
     );
   }, [dispatch, page, category, search, sort]);
 
+  const syncSearchParams = (nextState) => {
+    const params = {};
+
+    if (nextState.search) params.search = nextState.search;
+    if (nextState.category) params.category = nextState.category;
+    if (nextState.sort) params.sort = nextState.sort;
+
+    setSearchParams(params);
+  };
+
   const activeFilters = useMemo(() => {
     const filters = [];
+
     if (search) filters.push(`Search: ${search}`);
     if (category) filters.push(`Category: ${category}`);
-    if (sort) filters.push(`Sort: ${sort}`);
+    if (sort) filters.push(`Sort: ${sortLabels[sort] || sort}`);
+
     return filters;
   }, [search, category, sort]);
 
   const handleSearchSubmit = (event) => {
     event.preventDefault();
     const nextSearch = searchInput.trim();
+
     setPage(1);
     setSearch(nextSearch);
-    const params = {};
-    if (nextSearch) params.search = nextSearch;
-    if (category) params.category = category;
-    if (sort) params.sort = sort;
-    setSearchParams(params);
+    syncSearchParams({
+      search: nextSearch,
+      category,
+      sort,
+    });
+  };
+
+  const handleCategorySelect = (nextCategory) => {
+    setPage(1);
+    setCategory(nextCategory);
+    syncSearchParams({
+      search,
+      category: nextCategory,
+      sort,
+    });
+  };
+
+  const handleSortChange = (event) => {
+    const nextSort = event.target.value;
+    setPage(1);
+    setSort(nextSort);
+    syncSearchParams({
+      search,
+      category,
+      sort: nextSort,
+    });
   };
 
   const clearFilters = () => {
@@ -92,7 +131,7 @@ const Products = () => {
               type="search"
               placeholder="Search products..."
               value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
+              onChange={(event) => setSearchInput(event.target.value)}
             />
             <button type="submit">Go</button>
           </div>
@@ -101,7 +140,7 @@ const Products = () => {
         <div className="filter-group">
           <div className="filter-title-row">
             <h4>Category</h4>
-            <button type="button" className="clear-link" onClick={() => setCategory("")}>
+            <button type="button" className="clear-link" onClick={() => handleCategorySelect("")}>
               Clear
             </button>
           </div>
@@ -111,19 +150,11 @@ const Products = () => {
               <button
                 key={option}
                 type="button"
-              className={category === option ? "category-pill active" : "category-pill"}
-              onClick={() => {
-                setPage(1);
-                setCategory(option);
-                const params = {};
-                if (search) params.search = search;
-                params.category = option;
-                if (sort) params.sort = sort;
-                setSearchParams(params);
-              }}
-            >
-              {option}
-            </button>
+                className={category === option ? "category-pill active" : "category-pill"}
+                onClick={() => handleCategorySelect(option)}
+              >
+                {option}
+              </button>
             ))}
           </div>
         </div>
@@ -132,22 +163,10 @@ const Products = () => {
           <div className="filter-title-row">
             <h4>Sort</h4>
           </div>
-          <select
-            value={sort}
-            onChange={(e) => {
-              const nextSort = e.target.value;
-              setPage(1);
-              setSort(nextSort);
-              const params = {};
-              if (search) params.search = search;
-              if (category) params.category = category;
-              if (nextSort) params.sort = nextSort;
-              setSearchParams(params);
-            }}
-          >
+          <select value={sort} onChange={handleSortChange}>
             <option value="">Default</option>
-            <option value="priceLowToHigh">Price Low to High</option>
-            <option value="priceHighToLow">Price High to Low</option>
+            <option value="priceLowToHigh">Price low to high</option>
+            <option value="priceHighToLow">Price high to low</option>
           </select>
         </div>
 
@@ -162,9 +181,20 @@ const Products = () => {
             <span className="hero-kicker">Catalog</span>
             <h2>All Products</h2>
           </div>
-          <div className="filter-summary">
-            {activeFilters.length ? activeFilters.join(" • ") : "No filters active"}
+          <div className="header-stats">
+            <div className="header-stat">
+              <span>Showing</span>
+              <strong>{products.length}</strong>
+            </div>
+            <div className="header-stat">
+              <span>Total</span>
+              <strong>{pagination?.totalProducts || 0}</strong>
+            </div>
           </div>
+        </div>
+
+        <div className="filter-summary">
+          {activeFilters.length ? activeFilters.join(" | ") : "No filters active"}
         </div>
 
         {loading && products.length > 0 && <div className="inline-loader">Refreshing catalog...</div>}
@@ -173,7 +203,9 @@ const Products = () => {
           <div className="empty-products-state">
             <h3>No products found</h3>
             <p>Try a different search term or reset the filters.</p>
-            <button onClick={clearFilters}>Reset Filters</button>
+            <button type="button" onClick={clearFilters}>
+              Reset Filters
+            </button>
           </div>
         ) : (
           <div className="products-grid">
@@ -184,12 +216,13 @@ const Products = () => {
         )}
 
         <div className="pagination">
-          <button disabled={page === 1} onClick={() => setPage(page - 1)}>
+          <button type="button" disabled={page === 1} onClick={() => setPage(page - 1)}>
             Previous
           </button>
 
           {[...Array(pagination?.totalPages || 1)].map((_, index) => (
             <button
+              type="button"
               key={index}
               className={page === index + 1 ? "active-page" : ""}
               onClick={() => setPage(index + 1)}
@@ -199,6 +232,7 @@ const Products = () => {
           ))}
 
           <button
+            type="button"
             disabled={page === pagination?.totalPages}
             onClick={() => setPage(page + 1)}
           >

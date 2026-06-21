@@ -2,6 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   products: [],
+  sellerProducts: [],
   adminProducts: [],
   selectedProduct: null,
   pagination: {},
@@ -18,7 +19,13 @@ const productSlice = createSlice({
       state.pagination = action.payload.pagination;
     },
 
+    setSellerProducts: (state, action) => {
+      state.sellerProducts = action.payload;
+      state.adminProducts = action.payload;
+    },
+
     setAdminProducts: (state, action) => {
+      state.sellerProducts = action.payload;
       state.adminProducts = action.payload;
     },
 
@@ -33,9 +40,27 @@ const productSlice = createSlice({
     setError:(state,action) => {
       state.error = action.payload;
     },
+
+    resetProductState: () => ({
+      products: [],
+      sellerProducts: [],
+      adminProducts: [],
+      selectedProduct: null,
+      pagination: {},
+      loading: false,
+      error: null,
+    }),
   },
 });
 
-export const { setProduct, setError, setLoading, setSelectedProduct, setAdminProducts } = productSlice.actions;
+export const {
+  setProduct,
+  setError,
+  setLoading,
+  setSelectedProduct,
+  setSellerProducts,
+  setAdminProducts,
+  resetProductState,
+} = productSlice.actions;
 
 export default productSlice.reducer;

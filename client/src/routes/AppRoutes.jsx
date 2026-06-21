@@ -7,6 +7,7 @@ import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
 import Products from "../pages/Products/Products";
 import ProductDetails from "../pages/ProductDetails/ProductDetails";
+import Profile from "../pages/Profile/Profile";
 import Cart from "../pages/Cart/Cart";
 import Checkout from "../pages/Checkout/Checkout";
 import Orders from "../pages/Orders/Orders.jsx";
@@ -21,15 +22,13 @@ import ProtectedRoute from "./ProtectedRoute.jsx"
 import NotFound from "../pages/NotFound/NotFound.jsx";
 import CreateProduct from "../pages/Dashboard/CreateProduct/CreateProduct.jsx";
 import SellerApprovedRoute from "./SellerRoutes.jsx";
-import SellerRejected from "../pages/sellers/SellerRejected.jsx";
-import SellerPending from "../pages/sellers/SellerPending.jsx";
-import SellerApplication from "../pages/sellers/SellerApplication.jsx";
 import Users from "../pages/superAdmin/Users.jsx";
 import ApprovedSellers from "../pages/superAdmin/ApprovedSellers.jsx"
 import SellerApplications from "../pages/superAdmin/SellerApplications.jsx";
 import SuperAdminDashboard from "../pages/superAdmin/SuperAdminDashboard.jsx";
 import SuperAdminLayout from "../pages/superAdmin/SuperAdminLayout.jsx";
 import SellerStatus from "../pages/sellers/SellerStatus.jsx";
+import { ROLES } from "../features/auth/roleUtils";
 
 const AppRoutes = () => {
   return (
@@ -40,6 +39,11 @@ const AppRoutes = () => {
         <Route path="/register" element={ <Register/> } />
         <Route path="/products" element={ <Products/> } />
         <Route path="/products/:productId" element={ <ProductDetails/> } />
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } />
         <Route path="/cart" element ={
           <ProtectedRoute>
             <Cart />
@@ -60,7 +64,7 @@ const AppRoutes = () => {
 
       {/* DashBoard Layout Routes  */}
       <Route path="/dashboard" element={ 
-          <ProtectedRoute roles={["admin"]}>
+          <ProtectedRoute roles={[ROLES.SELLER]}>
             <SellerApprovedRoute>
               <DashboardLayout />
             </SellerApprovedRoute>
@@ -68,6 +72,7 @@ const AppRoutes = () => {
         } 
       >
         <Route index element={<DashboardHome />} />
+        <Route path="profile" element={<Profile />} />
         <Route path="products" element={<ManageProducts />} />
         <Route path="products/edit/:productId" element={<CreateProduct />} />
         <Route path="products/create" element={<CreateProduct />} />
@@ -78,7 +83,7 @@ const AppRoutes = () => {
       <Route
         path="/seller/application"
         element={
-          <ProtectedRoute roles={["admin"]}>
+          <ProtectedRoute roles={[ROLES.SELLER]}>
             <SellerStatus />
           </ProtectedRoute>
         }
@@ -86,12 +91,13 @@ const AppRoutes = () => {
 
       <Route path="/super-admin"
         element={
-          <ProtectedRoute roles={["superAdmin"]}>
+          <ProtectedRoute roles={[ROLES.SUPER_ADMIN]}>
             <SuperAdminLayout />
           </ProtectedRoute>
         }
       >
         <Route index element={<SuperAdminDashboard />} />
+        <Route path="profile" element={<Profile />} />
         <Route path="applications" element={ <SellerApplications /> } />
         <Route path="approved-sellers" element={<ApprovedSellers />} /> 
         <Route path="users" element={<Users />} />

@@ -17,6 +17,7 @@ import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { logoutThunk } from "../../../features/auth/authThunk";
 import toast from "react-hot-toast";
+import { ROLES, getRoleHomePath, getRoleLabel, normalizeRole } from "../../../features/auth/roleUtils";
 
 const Navbar = () => {
   const user = useSelector((state) => state.auth.user);
@@ -30,6 +31,13 @@ const Navbar = () => {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
+  const normalizedRole = normalizeRole(user?.role);
+  const isUser = normalizedRole === ROLES.USER;
+  const dashboardPath = getRoleHomePath(normalizedRole);
+  const dashboardLabel =
+    normalizedRole === ROLES.SUPER_ADMIN
+      ? getRoleLabel(normalizedRole)
+      : "Seller Dashboard";
 
   useEffect(() => {
     if (location.pathname !== "/products") {
@@ -44,8 +52,7 @@ const Navbar = () => {
     }
   }, [location.pathname, location.search]);
 
-  const dashboardPath = user?.role === "superAdmin" ? "/super-admin" : "/dashboard";
-  const dashboardLabel = user?.role === "superAdmin" ? "Super Admin" : "Dashboard";
+  const profilePath = "/profile";
 
   const handleLogout = async () => {
     const result = await dispatch(logoutThunk());
@@ -97,14 +104,14 @@ const Navbar = () => {
 
         {isAuthenticated ? (
           <>
-            {user?.role === "user" && (
+            {isUser && (
               <Link to="/cart" className="icon-pill cart">
                 <FaShoppingCart />
                 <span>Cart</span>
                 <small>{totalItems}</small>
               </Link>
             )}
-            {user?.role === "user" && (
+            {isUser && (
               <Link to="/orders" className="icon-pill">
                 <FaClipboardList />
                 <span>Orders</span>
@@ -112,7 +119,7 @@ const Navbar = () => {
               </Link>
             )}
 
-            {user?.role !== "user" && (
+            {!isUser && (
               <Link to={dashboardPath} className="icon-pill">
                 <FaUserCircle />
                 <span>{dashboardLabel}</span>
@@ -120,10 +127,12 @@ const Navbar = () => {
             )}
 
             <div className="user-menu">
-              <span className="user-chip">
-                <FaRegUser />
-                {user?.name}
-              </span>
+              {isUser && (
+                <Link to={profilePath} className="user-chip">
+                  <FaRegUser />
+                  {user?.name}
+                </Link>
+              )}
               <button className="logout-btn" onClick={handleLogout} type="button">
                 <FaSignOutAlt />
                 Logout
@@ -171,7 +180,7 @@ const Navbar = () => {
 
           {isAuthenticated ? (
             <>
-              {user?.role === "user" && (
+              {isUser && (
                 <>
                   <Link to="/cart" className="icon cart" onClick={closeMenu}>
                     <FaShoppingCart />
@@ -184,17 +193,17 @@ const Navbar = () => {
                 </>
               )}
 
-              {user?.role !== "user" && (
+              {!isUser && (
                 <Link to={dashboardPath} className="icon order" onClick={closeMenu}>
                   <FaUserCircle />
                   {dashboardLabel}
                 </Link>
               )}
 
-              <p className="mobile-user">
+              <Link to={profilePath} className="mobile-user" onClick={closeMenu}>
                 <FaRegUser />
                 {user?.name}
-              </p>
+              </Link>
 
               <button className="logout-btn mobile-logout" onClick={handleLogout} type="button">
                 <FaSignOutAlt />

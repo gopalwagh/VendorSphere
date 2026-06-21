@@ -4,17 +4,17 @@ import productReducer from "../features/products/productSlice";
 import cartReducer from "../features/cart/cartSlice";
 import couponReducer from "../features/coupon/couponSlice";
 import ordersReducer from "../features/orders/orderSlice";
-import adminReducer from "../features/admin/adminSlice";
 import sellerReducer from "../features/seller/sellerSlice";
+import superAdminReducer from "../features/superAdmin/superAdminSlice";
 
 export const store = configureStore({
   reducer: {
     auth : authReducer,
-    admin: adminReducer,
+    seller: sellerReducer,
     product : productReducer,
     cart : cartReducer,
     coupon: couponReducer,
     orders: ordersReducer,
-    seller: sellerReducer,
+    superAdmin: superAdminReducer,
   },
 });
