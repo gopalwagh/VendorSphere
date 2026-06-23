@@ -2,7 +2,9 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// start worker
-import "./workers/email.worker.js";
+// start email worker
+await import("./workers/email.worker.js");
+// start invoice worker
+await import("./workers/invoice.worker.js");
 // start server
-import("./server.js");
+await import("./server.js");

@@ -12,7 +12,7 @@ import asyncHandler from "../../utils/asyncHandler.js";
 import Order from "./order.model.js";
 import User from "../user/user.model.js";
 import emailQueue from "../../queues/email.queue.js";
-import generateInvoice from "../../services/generateInvoice.js";
+import invoiceQueue from "../../queues/invoice.queue.js";
 import Coupon from "../coupon/coupon.model.js";
 import calculateCartTotal from "../../utils/calculateCartTotal.js";
 import { redisClient } from "../../config/redis.js";
@@ -78,7 +78,8 @@ export const checkout = asyncHandler(async (req, res) => {
   
   const { shipping, tax, discountPercent, discountAmount, finalAmount, } 
     = await calculateCartTotal(subtotal,couponCode);
-
+    
+  //  initial check for razorpay test  mode limit
   if(finalAmount > 500000){
     throw new ApiError(400,"Order amount exceeds Razorpay limit of ₹5,00,000");
   }
@@ -262,6 +263,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
 
     if (user) {
       try {
+        // email job add to email queue
         await emailQueue.add(
           "sendOrderEmail",
           {
@@ -283,13 +285,21 @@ export const verifyPayment = asyncHandler(async (req, res) => {
             removeOnComplete: true,
           }
         );
-
-        const invoicePath = await generateInvoice({
-          order,
-          user,
-        });
-
-        console.log("Invoice generated:", invoicePath);
+        // invoice job add to invoice queue 
+        await invoiceQueue.add("generateInvoice",
+          {
+            orderId: order._id,
+            userId: user._id,
+          },
+          {
+            attempts:3,
+            backoff:{
+              type: "exponential",
+              delay: 5000,
+            },
+            removeOnComplete: true,
+          }
+        );
       } catch (error) {
         console.error(
           "Post-payment tasks failed:",

@@ -1,6 +1,6 @@
 import { Queue } from "bullmq";
 /** bullmq library mai Queue namak class rehti hai */
-// new Queue geenrated
+// new Queue generated
 // "emailQueue" was it unique name
 const emailQueue = new Queue("emailQueue", {
   // it's actually telling where is redis server
