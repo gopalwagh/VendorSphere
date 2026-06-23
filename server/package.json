@@ -18,6 +18,7 @@
     "multer": "^2.1.1",
     "nodemailer": "^8.0.8",
     "pdfkit": "^0.18.0",
+    "qrcode": "^1.5.4",
     "razorpay": "^2.9.6",
     "redis": "^5.12.1",
     "xss-clean": "^0.1.4"

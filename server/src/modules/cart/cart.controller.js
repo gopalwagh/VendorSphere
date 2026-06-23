@@ -74,7 +74,6 @@ export const getCart = asyncHandler(async (req, res) => {
     );
   }
 
-  console.log(`[CACHE MISS] Fetching cart from MongoDB for User ${req.user._id}...`);
   // cache miss fetch Database with populate
   const cart = await Cart.findOne({
     user: req.user._id,

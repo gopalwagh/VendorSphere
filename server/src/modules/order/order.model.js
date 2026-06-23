@@ -124,6 +124,11 @@ const orderSchema = new mongoose.Schema(
       default: "pending",
     },
     shippingAddress: shippingAddressSchema,
+    invoice: {
+      url: String,
+      public_id: String,
+      generatedAt: Date,
+    },
     message: String,
     orderTimeline: {
       type: [orderTimelineSchema],

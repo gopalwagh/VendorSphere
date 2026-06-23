@@ -3,7 +3,16 @@ import express from "express";
 import protect from "../../middleware/authMiddleware.js";
 import sellerOnly from "../../middleware/sellerMiddleware.js";
 import superAdminOnly from "../../middleware/superAdminMiddleware.js";
-import { checkout, verifyPayment, getMyOrders, getAllOrders, updateOrderStatus, downloadInvoice, trackOrder, getSellerOrders, } from "./order.controller.js";
+import { 
+  checkout, 
+  verifyPayment, 
+  getMyOrders, 
+  getAllOrders, 
+  updateOrderStatus, 
+  downloadInvoice, 
+  trackOrder, 
+  getSellerOrders, 
+} from "./order.controller.js";
 
 const router = express.Router();
 

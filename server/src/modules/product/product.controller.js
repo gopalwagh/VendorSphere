@@ -70,7 +70,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
   if (category !== undefined) product.category = category;
   if (brand !== undefined) product.brand = brand;
   if (stock !== undefined) product.stock = stock;
-
+  // delete only first image because we only take 1 image for single product
   if (req.file) {
     if (product.images?.[0]?.public_id) {
       try {
