@@ -8,6 +8,8 @@ import SellerProfile from "../user/sellerProfile.model.js";
 import { getAnalyticsService } from "./seller.service.js";
 import { getCachedData, setCachedData } from "../../utils/redisHelper.js";
 
+import notificationQueue from "../../queues/notification.queue.js";
+
 export const applySellerProfile = asyncHandler(async(req,res) =>  {
   const { 
     storeName, storeDescription, 
@@ -22,8 +24,9 @@ export const applySellerProfile = asyncHandler(async(req,res) =>  {
     !accountNumber || !ifscCode ) { 
     throw new ApiError( 400, "All fields are required" ); 
   }
-
-  const existingProfile = await SellerProfile.findOne({ user: req.user._id });
+  // for reusable userId
+  const userID = req.user._id;
+  const existingProfile = await SellerProfile.findOne({ user: userID });
 
   let sellerProfile;
 
@@ -84,10 +87,33 @@ export const applySellerProfile = asyncHandler(async(req,res) =>  {
     });
   }
   
-  await User.findByIdAndUpdate(req.user._id, {
+  await User.findByIdAndUpdate( userID, {
     sellerStatus: "pending",
   });
-  
+
+  const superAdminId = await User.findOne({
+    role: "superAdmin",
+  }).select("_id");
+
+  await notificationQueue.add("application-list", 
+    {
+      userId : superAdminId._id,
+      notificationTitle : "📝👤 New Seller Application",
+      notificationBody : "A new seller application is waiting for review.",
+      notificationData : {
+        url: "/super-admin/applications",
+      }
+    },
+    {
+      attempts: 3,
+      backoff: {
+        type: "exponential",
+        delay: 5000,
+      },
+      removeOnComplete: true,
+    }
+  );
+
     return res.status(201).json(
       new ApiResponse(
         201,

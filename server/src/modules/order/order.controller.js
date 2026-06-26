@@ -3,19 +3,25 @@ import fs from "fs";
 import path from "path";
 import mongoose from "mongoose";
 
-import Cart from "../cart/cart.model.js";
-import Product from "../product/product.model.js";
 import razorpayInstance from "../../config/razorpay.js";
+import { redisClient } from "../../config/redis.js";
+
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
 import asyncHandler from "../../utils/asyncHandler.js";
+
+import Product from "../product/product.model.js";
 import Order from "./order.model.js";
 import User from "../user/user.model.js";
+import Cart from "../cart/cart.model.js";
+import Coupon from "../coupon/coupon.model.js";
+
 import emailQueue from "../../queues/email.queue.js";
 import invoiceQueue from "../../queues/invoice.queue.js";
-import Coupon from "../coupon/coupon.model.js";
+import notificationQueue from "../../queues/notification.queue.js";
+
+
 import calculateCartTotal from "../../utils/calculateCartTotal.js";
-import { redisClient } from "../../config/redis.js";
 import { isPrivilegedOrderRole } from "../../utils/roleUtils.js";
 
 const ORDER_STATUSES =
@@ -260,7 +266,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     }
 
     const user = await User.findById(order.user);
-
+    console.log(uniqueSellerIds);
     if (user) {
       try {
         // email job add to email queue
@@ -300,6 +306,28 @@ export const verifyPayment = asyncHandler(async (req, res) => {
             removeOnComplete: true,
           }
         );
+        // notification job add to notification Queue
+        for (const sellerId of uniqueSellerIds) {
+          await notificationQueue.add(
+            "seller-order",
+            {
+              userId : sellerId,
+              notificationTitle : "New Order Received 🎉📦",
+              notificationBody : ` You have received a new order.`,
+              notificationData: {
+                url: `/dashboard/orders`, // 🔗 Link for webpush
+              },
+            },
+            {
+              attempts: 3,
+              backoff: {
+                type: "exponential",
+                delay: 5000,
+              },
+              removeOnComplete: true,
+            }
+          );
+        }
       } catch (error) {
         console.error(
           "Post-payment tasks failed:",
@@ -444,6 +472,26 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
       status: order.orderStatus,
       message: `Order moved to ${order.orderStatus}`
     });
+    // notification Queue assign 
+    await notificationQueue.add(
+      "order-status",
+      {
+        userId: order.user,
+        notificationTitle: "Order Update📦",
+        notificationBody: `Your order has been ${order.orderStatus}`,
+        notificationData: {
+          url: `/orders/${order._id}`, // 🔗 Link for webpush
+        },
+      },
+      {
+        attempts:3,
+        backoff:{
+          type: "exponential",
+          delay: 5000,
+        },
+        removeOnComplete: true,
+      }
+    );
   }
 
   await order.save();

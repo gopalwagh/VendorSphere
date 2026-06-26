@@ -74,6 +74,11 @@ const userSchema = new mongoose.Schema(
     },
 
     addresses: [addressSchema],
+    
+    fcmToken: {
+      type: String,
+      default: null,
+    },
   },
 
   {

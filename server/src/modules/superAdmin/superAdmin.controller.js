@@ -13,6 +13,8 @@ import SellerProfile from "../user/sellerProfile.model.js";
 import User from "../user/user.model.js";
 import Order from "../order/order.model.js";
 
+import notificationQueue from "../../queues/notification.queue.js";
+
 export const getPendingApplications =
   asyncHandler(async (req, res) => {
 
@@ -53,9 +55,28 @@ export const approveApplication =
     sellerProfile.approvedBy = req.user._id;
 
     sellerProfile.approvedAt = new Date();
-
+    /// approved notification job intialize in notificationQueue
+    const job = await notificationQueue.add(
+      "application-approved",{
+        userId: sellerProfile.user,
+        notificationTitle: "🎉🛍️ Application Approved",
+        notificationBody: "Congratulations! Your seller account has been approved.",
+        notificationData: {
+          url: "/dashboard",
+        }
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 5000,
+        },
+        removeOnComplete: true,
+      }
+    );
+    // profile save
     await sellerProfile.save();
-
+    // in user schema status update
     await User.findByIdAndUpdate(
       sellerProfile.user,
       {
@@ -82,18 +103,34 @@ export const rejectApplication =
       );
 
     if (!sellerProfile) {
-      throw new ApiError(
-        404,
-        "Application not found"
-      );
+      throw new ApiError( 404, "Application not found");
     }
 
     sellerProfile.applicationStatus = "rejected";
 
     sellerProfile.rejectionReason = reason;
-
+    //rejected notification job intialize notificationQueue
+    const job = await notificationQueue.add(
+      "application-rejected",{
+        userId: sellerProfile.user,
+        notificationTitle: "🚫 Application Rejected",
+        notificationBody: "⚠️ Please review the rejection reason and apply again.",
+        notificationData: {
+          url: "/seller/application",
+        }
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: "exponential",
+          delay: 5000,
+        },
+        removeOnComplete: true,
+      }
+    );
+    // profile save
     await sellerProfile.save();
-
+    // in user schema status update
     await User.findByIdAndUpdate(
       sellerProfile.user,
       {

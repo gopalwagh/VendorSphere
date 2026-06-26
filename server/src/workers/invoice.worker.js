@@ -26,12 +26,16 @@ const invoiceWorker = new Worker("invoiceQueue",
 
     const uploaded = await uploadInvoiceToCloudinary( invoicePath );
 
+    const downloadUrl = uploaded.secure_url.replace(
+      "/upload/",
+      "/upload/fl_attachment/"
+    );
     order.invoice = {
-      url: uploaded.secure_url,
+      url: downloadUrl,
       public_id: uploaded.public_id,
       generatedAt: new Date(),
     };
-
+ 
     await order.save();
     try {
       fs.unlinkSync(invoicePath);
