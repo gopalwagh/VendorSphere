@@ -26,7 +26,9 @@ const notificationWorker = new Worker(
   {
     connection :{
       url: process.env.REDIS_URL,
-      tls: {},
+      tls: {
+        rejectUnauthorized: false
+      },
     },
     skipNetworkCheck: true,
     suppressVersionCheck: true,
