@@ -5,6 +5,7 @@ import { useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux";
 import { getCartThunk } from "./features/cart/cartThunk";
 import { ROLES, normalizeRole } from "./features/auth/roleUtils";
+import { initializeForegroundNotifications } from "./firebase/notificationListener";
 
 const App = () => { 
   const dispatch = useDispatch();
@@ -19,6 +20,8 @@ const App = () => {
       dispatch(getCartThunk());
     }
   }, [dispatch, fetchedUser, isAuthenticated, user?.role]);
+
+  initializeForegroundNotifications();
   
   return (
     <>

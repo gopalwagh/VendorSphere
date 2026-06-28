@@ -238,3 +238,27 @@
     align-items:flex-start;
   }
 }
+
+.invoice-btn{
+  display:flex;
+  align-items:center;
+  gap:8px;
+
+  padding:10px 16px;
+
+  background:#0f172a;
+  color:#fff;
+
+  border-radius:10px;
+  text-decoration:none;
+
+  font-size:14px;
+  font-weight:600;
+
+  transition:0.3s ease;
+}
+
+.invoice-btn:hover{
+  transform:translateY(-2px);
+  opacity:0.9;
+}

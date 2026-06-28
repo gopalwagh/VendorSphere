@@ -1,7 +1,20 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { getAdminProductApi, getAllProducts, getProductById, updateProductApi, createProductApi, deleteProductApi } from "../../api/productApi";
+import { 
+  getAdminProductApi, 
+  getAllProducts, 
+  getProductById, 
+  updateProductApi, 
+  createProductApi, 
+  deleteProductApi 
+} from "../../api/productApi";
 
-import { setProduct, setError, setLoading, setSelectedProduct, setSellerProducts } from "./productSlice";
+import { 
+  setProduct, 
+  setError, 
+  setLoading, 
+  setSelectedProduct, 
+  setSellerProducts 
+} from "./productSlice";
 
 export const fetchProducts = (filters) => {
   return async (dispatch) => {

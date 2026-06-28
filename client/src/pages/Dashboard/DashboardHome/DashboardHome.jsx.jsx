@@ -198,7 +198,6 @@ const DashboardHome = () => {
     ? Math.round((dashboardStats.deliveredOrder / dashboardStats.totalOrders) * 100)
     : 0;
 
-  console.log(adminOrders)
   return (
     <div className="dh-page">
       {/* Header */}

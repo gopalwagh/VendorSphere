@@ -2,22 +2,22 @@ import { Routes, Route } from "react-router-dom";
 
 import MainLayout from "../layouts/MainLayout";
 
-import Home from "../pages/Home/Home";
-import Login from "../pages/Login/Login";
-import Register from "../pages/Register/Register";
-import Products from "../pages/Products/Products";
-import ProductDetails from "../pages/ProductDetails/ProductDetails";
-import Profile from "../pages/Profile/Profile";
-import Cart from "../pages/Cart/Cart";
-import Checkout from "../pages/Checkout/Checkout";
+import Home from "../pages/Home/Home.jsx";
+import Login from "../pages/Login/Login.jsx";
+import Register from "../pages/Register/Register.jsx";
+import Products from "../pages/Products/Products.jsx";
+import ProductDetails from "../pages/ProductDetails/ProductDetails.jsx";
+import Profile from "../pages/Profile/Profile.jsx";
+import Cart from "../pages/Cart/Cart.jsx";
+import Checkout from "../pages/Checkout/Checkout.jsx";
 import Orders from "../pages/Orders/Orders.jsx";
 import OrderDetails from "../pages/orderDetails/OrderDetails.jsx";
-import DashboardLayout from "../layouts/DashboardLayout";
-import ManageOrders from "../pages/Dashboard/ManageOrders/ManageOrders";
+import DashboardLayout from "../layouts/DashboardLayout.jsx";
+import ManageOrders from "../pages/Dashboard/ManageOrders/ManageOrders.jsx";
 import Coupons from "../pages/superAdmin/Coupons.jsx";
 import DashboardHome from "../pages/Dashboard/DashboardHome/DashboardHome.jsx"
-import ManageProducts from "../pages/Dashboard/ManageProducts/ManageProducts"
-import Analytics from "../pages/Dashboard/Analytics/Analytics";
+import ManageProducts from "../pages/Dashboard/ManageProducts/ManageProducts.jsx"
+import Analytics from "../pages/Dashboard/Analytics/Analytics.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx"
 import NotFound from "../pages/NotFound/NotFound.jsx";
 import CreateProduct from "../pages/Dashboard/CreateProduct/CreateProduct.jsx";
@@ -28,7 +28,7 @@ import SellerApplications from "../pages/superAdmin/SellerApplications.jsx";
 import SuperAdminDashboard from "../pages/superAdmin/SuperAdminDashboard.jsx";
 import SuperAdminLayout from "../pages/superAdmin/SuperAdminLayout.jsx";
 import SellerStatus from "../pages/sellers/SellerStatus.jsx";
-import { ROLES } from "../features/auth/roleUtils";
+import { ROLES } from "../features/auth/roleUtils.js";
 
 const AppRoutes = () => {
   return (

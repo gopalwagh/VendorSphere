@@ -77,7 +77,7 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <Link to="/" className="logo" onClick={closeMenu}>
-        ShopHub
+        VendorSphere
       </Link>
 
       <form className="search-box" onSubmit={handleSearchSubmit}>

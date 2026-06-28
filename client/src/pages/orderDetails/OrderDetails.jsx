@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Loader from "../../components/Loader/Loader";
 import { getOrderDetailsApi } from "../../api/orderApi";
+import { FiDownload } from "react-icons/fi";
 
 const OrderDetails = () => {
   const { orderId } = useParams();
@@ -31,6 +32,18 @@ const OrderDetails = () => {
           <p>Placed on {new Date(order.createdAt).toLocaleDateString()}</p>
         </div>
         <div className="hero-right">
+            {order.invoice?.url && (
+              <a
+                href={order.invoice.url}
+                download={`Invoice-${order._id || 'Order'}.pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="invoice-btn"
+              >
+                <FiDownload />
+                <span>Invoice</span>
+              </a>
+            )}
           <span className={`status-chip ${order.orderStatus}`}>{order.orderStatus}</span>
           <span className={`payment-chip ${order.paymentStatus}`}>{order.paymentStatus}</span>
         </div>

@@ -8,6 +8,8 @@ import { resetAnalytics } from "../seller/sellerSlice";
 import { resetProductState } from "../products/productSlice";
 import { resetOrderState } from "../orders/orderSlice";
 import { resetSellerState } from "../superAdmin/superAdminSlice";
+import { saveFcmTokenApi } from "../../api/notificationApi";
+import { requestPermission } from "../../firebase/requestPermission";
 
 const normalizeUser = (user) => {
   if (!user) return user;
@@ -56,6 +58,15 @@ export const loginThunk = (credentials) => {
       const normalizedUser = normalizeUser(dataInfo.user);
       dispatch(setUser(normalizedUser));
       dispatch(setFetchedUser(true));
+      
+      try{
+        const token = await requestPermission();
+        if(token){
+          await saveFcmTokenApi(token);
+        }
+      } catch(err){
+        console.log("FCM setup failed",err);
+      }
       
       return {
         success: true,

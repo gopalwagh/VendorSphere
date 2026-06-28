@@ -103,7 +103,7 @@ const Checkout = () => {
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
       order_id: razorpayOrder.id,
-      name: "ShopHub",
+      name: "VendorSphere",
       description: "Order Payment",
       handler: async function (response) {
         if (
