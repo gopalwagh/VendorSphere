@@ -5,8 +5,10 @@ import { Queue } from "bullmq";
 const emailQueue = new Queue("emailQueue", {
   // it's actually telling where is redis server
   connection : {
-    url:process.env.REDIS_URL,  
+    url:process.env.REDIS_URL,
+    tls: {},  
   },
+  skipNetworkCheck: true,
 });
 
 export default emailQueue;

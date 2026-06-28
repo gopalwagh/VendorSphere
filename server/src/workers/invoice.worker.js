@@ -50,7 +50,10 @@ const invoiceWorker = new Worker("invoiceQueue",
   {
     connection :{
       url: process.env.REDIS_URL,
+      tls: {},
     },
+    skipNetworkCheck: true,
+    suppressVersionCheck: true,
   }
 )
 
