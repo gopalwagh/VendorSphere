@@ -65,10 +65,13 @@ export const loginUser = asyncHandler(async (req, res) => {
   const accessToken = generateAccessToken(user._id);
   const refreshToken = generateRefreshToken(user._id);
 
+  const isProduction = process.env.NODE_ENV === "production";
+
   const cookieOptions = {
     httpOnly: true,
-    secure: false,
-    sameSite: "lax",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   };
   
   await redisClient.set(
@@ -156,8 +159,8 @@ export const logoutUser = asyncHandler(async (req, res) => {
   // claear karna padega all cookies
   const cookieOptions = {
     httpOnly : true,
-    secure : false,
-    sameSite : "lax",
+    secure : true,
+    sameSite : "none",
   };
 
   return res

@@ -266,7 +266,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
     }
 
     const user = await User.findById(order.user);
-    console.log(uniqueSellerIds);
+    
     if (user) {
       try {
         // email job add to email queue

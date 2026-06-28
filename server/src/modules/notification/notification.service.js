@@ -17,7 +17,7 @@ export const sendPushNotification = async(
           body,
         },
         fcmOptions: {
-          link: `http://localhost:5173${data.url}`,
+          link: `${process.env.CLIENT_URL}${data.url}`,
         },
       },
       data: {
