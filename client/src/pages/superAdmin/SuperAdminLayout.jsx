@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "../../components/Sidebar/sidebar";
+import BusinessCopilot from "../../components/BusinessCopilot/BusinessCopilot";
 
 const SuperAdminLayout = () => {
   return (
@@ -8,6 +9,7 @@ const SuperAdminLayout = () => {
       <main className="dashboard-content">
         <Outlet />
       </main>
+      <BusinessCopilot />
     </div>
   );
 };

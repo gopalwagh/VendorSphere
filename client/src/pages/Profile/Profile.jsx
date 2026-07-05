@@ -45,7 +45,7 @@ const Profile = () => {
     if (isSeller && !sellerProfile) {
       dispatch(fetchSellerProfileThunk());
     }
-  }, [dispatch, isSeller, sellerProfile]);
+  }, [dispatch, isSeller, sellerProfile, sellerLoading]);
 
   useEffect(() => {
     if (!user) return;

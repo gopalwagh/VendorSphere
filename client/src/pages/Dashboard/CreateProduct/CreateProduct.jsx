@@ -3,7 +3,12 @@ import toast from "react-hot-toast";
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchProductDetails,fetchAdminProductsThunk, createProductThunk, updateProductThunk } from "../../../features/products/productThunk";
+import { 
+  fetchProductDetails,
+  fetchAdminProductsThunk, 
+  createProductThunk, 
+  updateProductThunk 
+} from "../../../features/products/productThunk";
 import Loader from '../../../components/Loader/Loader';
 
 const CreateProduct = () => {
@@ -159,6 +164,9 @@ const CreateProduct = () => {
               </option>
               <option value="electronics">
                 Electronics
+              </option>
+              <option value="anime-card">
+                Anime Card
               </option>
               <option value="fashion">
                 Fashion

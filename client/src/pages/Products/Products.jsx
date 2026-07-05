@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../../features/products/productThunk";
 import { useSearchParams } from "react-router-dom";
 
-const categoryOptions = ["electronics", "fashion", "shoes", "books", "mobiles", "gaming"];
+const categoryOptions = ["electronics", "anime-card", "fashion", "shoes", "books", "mobiles", "gaming"];
 
 const sortLabels = {
   priceLowToHigh: "Price low to high",

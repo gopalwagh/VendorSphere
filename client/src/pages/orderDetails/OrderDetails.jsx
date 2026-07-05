@@ -113,7 +113,7 @@ const OrderDetails = () => {
             </div>
             <div className="price-row">
               <span>Tax</span>
-              <span>Rs. {order.tax}</span>
+              <span>Rs. {(order.tax).toFixed(2)}</span>
             </div>
             <div className="price-row">
               <span>Discount</span>
