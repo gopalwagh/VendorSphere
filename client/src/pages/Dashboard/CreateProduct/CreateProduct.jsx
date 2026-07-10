@@ -43,6 +43,21 @@ const CreateProduct = () => {
       setDescription(selectedProduct.description);
     }
   },[selectedProduct]);
+  
+  const categories = [
+    { label: "Electronics", value: "electronics" },
+    { label: "Anime Card", value: "anime-card" },
+    { label: "Fashion", value: "fashion" },
+    { label: "Books", value: "books" },
+    { label: "Home & Kitchen", value: "home-kitchen" },
+    { label: "Beauty & Personal Care", value: "beauty-personal-care" },    
+    { label: "Sports & Fitness", value: "sports-fitness" },
+    { label: "Groceries", value: "groceries" },
+    { label: "Furniture", value: "furniture" },
+    { label: "Automotive", value: "automotive" },
+    { label: "Pet Supplies", value: "pet-supplies" },
+    { label: "Gaming", value: "gaming" },
+  ];
 
   const handleSubmit = async(e) => {
     e.preventDefault();
@@ -159,21 +174,15 @@ const CreateProduct = () => {
               value={category}
               onChange={(e)=>setCategory(e.target.value)}
             >
-              <option value="">
-                Select Category
+              <option value=""> Select Category </option>
+              {categories.map((item) => (
+              <option
+                key={item.value}
+                value={item.value}
+              >
+                {item.label}
               </option>
-              <option value="electronics">
-                Electronics
-              </option>
-              <option value="anime-card">
-                Anime Card
-              </option>
-              <option value="fashion">
-                Fashion
-              </option>
-              <option value="books">
-                Books
-              </option>
+            ))}
             </select>
           </div>
           <button

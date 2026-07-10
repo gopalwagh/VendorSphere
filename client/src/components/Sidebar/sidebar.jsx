@@ -41,6 +41,10 @@ const Sidebar = () => {
       path: "/dashboard/analytics",
     },
     {
+      label: "✦ Business Copilot",
+      path: "/dashboard/copilot",
+    },
+    {
       label: "Profile",
       path: "/dashboard/profile",
     },
@@ -66,6 +70,10 @@ const Sidebar = () => {
     {
       label: "Coupons",
       path: "/super-admin/coupons",
+    },
+    {
+      label: "✦ Business Copilot",
+      path: "/super-admin/copilot",
     },
     {
       label: "Profile",

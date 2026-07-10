@@ -19,6 +19,12 @@ import { logoutThunk } from "../../../features/auth/authThunk";
 import toast from "react-hot-toast";
 import { ROLES, getRoleHomePath, getRoleLabel, normalizeRole } from "../../../features/auth/roleUtils";
 
+const SEARCH_CATEGORIES = [
+  "products...", "beauty-personal-care...", "electronics...", "anime-card...", "fashion...", 
+  "home-kitchen...", "books...", "mobiles...", "gaming...", "sports-fitness...", "groceries...",
+   "furniture...", "automotive...", "pet-supplies..." 
+];
+
 const Navbar = () => {
   const user = useSelector((state) => state.auth.user);
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -38,6 +44,43 @@ const Navbar = () => {
     normalizedRole === ROLES.SUPER_ADMIN
       ? getRoleLabel(normalizedRole)
       : "Seller Dashboard";
+
+  // Typewriter effect state
+  const [placeholderText, setPlaceholderText] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [loopNum, setLoopNum] = useState(0);
+
+  useEffect(() => {
+    let timer;
+    const i = loopNum % SEARCH_CATEGORIES.length;
+    const fullText = SEARCH_CATEGORIES[i];
+
+    const handleType = () => {
+      setPlaceholderText(
+        isDeleting
+          ? fullText.substring(0, placeholderText.length - 1)
+          : fullText.substring(0, placeholderText.length + 1)
+      );
+
+      if (!isDeleting && placeholderText === fullText) {
+        setIsDeleting(true);
+      } else if (isDeleting && placeholderText === "") {
+        setIsDeleting(false);
+        setLoopNum((prev) => prev + 1);
+      }
+    };
+
+    let delay = isDeleting ? 40 : 120; // typing speeds
+
+    if (!isDeleting && placeholderText === fullText) {
+      delay = 2000; // pause at end of word
+    } else if (isDeleting && placeholderText === "") {
+      delay = 500; // pause before next word
+    }
+
+    timer = setTimeout(handleType, delay);
+    return () => clearTimeout(timer);
+  }, [placeholderText, isDeleting, loopNum]);
 
   useEffect(() => {
     if (location.pathname !== "/products") {
@@ -83,7 +126,7 @@ const Navbar = () => {
       <form className="search-box" onSubmit={handleSearchSubmit}>
         <input
           type="text"
-          placeholder="Search products..."
+          placeholder={`Search ${placeholderText}|`}
           value={searchValue}
           onChange={(event) => setSearchValue(event.target.value)}
         />
@@ -160,7 +203,7 @@ const Navbar = () => {
           <form className="mobile-search" onSubmit={handleSearchSubmit}>
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder={`Search ${placeholderText}|`}
               value={searchValue}
               onChange={(event) => setSearchValue(event.target.value)}
             />

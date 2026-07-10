@@ -1,4 +1,4 @@
-import "./SellerPending.css";
+
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import Loader from "../../components/Loader/Loader.jsx";

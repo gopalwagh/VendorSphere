@@ -29,6 +29,7 @@ import SuperAdminDashboard from "../pages/superAdmin/SuperAdminDashboard.jsx";
 import SuperAdminLayout from "../pages/superAdmin/SuperAdminLayout.jsx";
 import SellerStatus from "../pages/sellers/SellerStatus.jsx";
 import { ROLES } from "../features/auth/roleUtils.js";
+import BusinessCopilotPage from "../pages/copilot/BusinessCopilotPage.jsx";
 
 const AppRoutes = () => {
   return (
@@ -78,6 +79,7 @@ const AppRoutes = () => {
         <Route path="products/create" element={<CreateProduct />} />
         <Route path="orders" element={<ManageOrders />} />
         <Route path="analytics" element={<Analytics />} />
+        <Route path="copilot" element={<BusinessCopilotPage />} />
       </Route>
       
       <Route
@@ -102,6 +104,7 @@ const AppRoutes = () => {
         <Route path="approved-sellers" element={<ApprovedSellers />} /> 
         <Route path="users" element={<Users />} />
         <Route path="coupons" element={<Coupons />} />
+        <Route path="copilot" element={<BusinessCopilotPage />} />
       </Route>
 
       {/* Catch-all NotFound */}

@@ -25,7 +25,7 @@ const Hero = () => {
 
         <div className="hero-metrics">
           <div>
-            <strong>10K+</strong>
+            <strong>1K+</strong>
             <span>Curated products</span>
           </div>
           <div>
