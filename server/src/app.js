@@ -17,6 +17,7 @@ import couponRoutes from "./modules/coupon/coupon.routes.js";
 import sellerRoutes from "./modules/seller/seller.routes.js";
 import superAdminRoutes from "./modules/superAdmin/superAdmin.routes.js";
 import notificationRoutes from "./modules/notification/notification.routes.js";
+import copilotRoutes from "./modules/copilot/copilot.route.js";
 
 const app = express();
 const limiter = rateLimit({
@@ -65,6 +66,7 @@ app.use("/api/coupons",couponRoutes);
 app.use("/api/seller", sellerRoutes);
 app.use("/api/superAdmin", superAdminRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/copilot", copilotRoutes);
 
 app.use(errorMiddleware);
 

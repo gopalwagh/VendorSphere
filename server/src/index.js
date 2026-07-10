@@ -9,6 +9,8 @@ await import("./workers/email.worker.js");
 await import("./workers/invoice.worker.js");
 // start notification worker
 await import("./workers/notification.worker.js");
+// start copilot Worker
+await import("./workers/copilot.worker.js");
 
 // start server
 await import("./server.js");

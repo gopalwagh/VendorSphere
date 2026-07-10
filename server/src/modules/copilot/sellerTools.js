@@ -95,7 +95,7 @@ const _orderStatusBreakdown = async ({ sellerId }) => {
   return JSON.stringify(rows);
 };
 
-const _inventoryStatus = async ({ sellerId, threshold = 10 }) => {
+const _inventoryStatus = async ({ sellerId, threshold = 5 }) => {
   const items = await Product.find({
     createdBy: oid(sellerId),
     stock: { $lt: threshold },

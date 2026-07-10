@@ -92,13 +92,13 @@ const _platformTopProducts = async ({ sortBy = "revenue", limit = 10 }) => {
   return JSON.stringify(rows);
 };
 
-export const buildAdminTools = () => [
+export const buildAdminTools = (superAdmin) => [
   createBoundTool({
     name: "getPlatformRevenue",
     description: "Platform-wide commission earned and GMV, current 30 days vs previous 30 days.",
     parameters: { type: "object", properties: {}, required: [] },
     handler: _platformRevenue,
-    boundContext: {},
+    boundContext: { superAdmin },
   }),
   createBoundTool({
     name: "getSellerLeaderboard",
@@ -109,28 +109,28 @@ export const buildAdminTools = () => [
       required: [],
     },
     handler: _sellerLeaderboard,
-    boundContext: {},
+    boundContext: { superAdmin },
   }),
   createBoundTool({
     name: "getPendingSellerApplications",
     description: "Sellers whose store application is pending approval.",
     parameters: { type: "object", properties: {}, required: [] },
     handler: _pendingSellerApplications,
-    boundContext: {},
+    boundContext: { superAdmin },
   }),
   createBoundTool({
     name: "getCouponEffectiveness",
     description: "Coupon usage counts, total discount given, and order value influenced, per coupon code.",
     parameters: { type: "object", properties: { limit: { type: "number" } }, required: [] },
     handler: _couponEffectiveness,
-    boundContext: {},
+    boundContext: { superAdmin },
   }),
   createBoundTool({
     name: "getPlatformOrderStatusBreakdown",
     description: "Platform-wide order counts grouped by status.",
     parameters: { type: "object", properties: {}, required: [] },
     handler: _platformOrderStatusBreakdown,
-    boundContext: {},
+    boundContext: { superAdmin },
   }),
   createBoundTool({
     name: "getPlatformTopProducts",
@@ -141,6 +141,6 @@ export const buildAdminTools = () => [
       required: [],
     },
     handler: _platformTopProducts,
-    boundContext: {},
+    boundContext: { superAdmin },
   }),
 ];

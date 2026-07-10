@@ -32,7 +32,8 @@ export const handleCopilotChat = asyncHandler(async (req, res) => {
         userId, role, 
         userMessage: message, 
         aiResponse: aiResponseText, 
-        timestamp: new Date() },
+        timestamp: new Date() 
+      },
       { 
         removeOnComplete: true, 
         attempts: 3, 

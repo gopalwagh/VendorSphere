@@ -47,6 +47,10 @@ const productSchema = new mongoose.Schema(
         name : String,
         rating : Number,
         comment : String,
+        createdAt : {
+          type : Date,
+          default : Date.now,
+        },
       },
     ],
     /// average rating 
