@@ -71,7 +71,7 @@ export const getProductReviewsApi = async (productId) => {
 
 export const importProductsApi = async (formData) => {
   const response = await axiosInstance.post(
-    "/products/import", formData,
+    "/products/import-excel", formData,
     {
       headers: {
         "Content-Type": "multipart/form-data",

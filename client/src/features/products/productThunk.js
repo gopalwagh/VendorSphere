@@ -152,7 +152,7 @@ export const bulkUploadProductsThunk = (formdata) => {
   return async (dispatch) => {
     try {
       dispatch(setLoading(true))
-      const response = await importProductsApi(formData);
+      const response = await importProductsApi(formdata);
 
       return {
         success: true,

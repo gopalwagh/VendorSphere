@@ -156,7 +156,13 @@ const CreateProduct = () => {
       await dispatch(fetchAdminProductsThunk());
       navigate("/dashboard/products");
     } else {
-      toast.error(result.message || "Bulk upload failed");
+      const errorMessage = 
+        result.payload?.message || // Standard RTK rejectWithValue path
+        result.error?.message ||   // RTK default serializable error path
+        result.message ||           // Custom return path
+        "Bulk upload failed";
+        
+      toast.error(errorMessage);
     }
     
     setIsProcessingBulk(false);

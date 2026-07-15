@@ -65,39 +65,48 @@ export const createProduct = asyncHandler(async (req, res) => {
 
 // controller for adding bulk products through excel 
 export const importProductFromExcel = asyncHandler(async (req, res) => {
-  if(!req.file) throw new ApiError(400, "please Upload an Excel file");
+  if (!req.file) throw new ApiError(400, "Please upload an Excel file");
   
-  // 1.File parse 
+  // File parse 
   const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
   const sheetName = workbook.SheetNames[0];
   const rawData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-  if(!rawData || rawData.length === 0){
-    throw new ApiError(400, "Excel file is Empty");
+  if (!rawData || rawData.length === 0) {
+    throw new ApiError(400, "Excel file is empty");
   }
 
-  // Data format karna (Excel columns mapping)
-  const productsToInsert = rawData.map((item) => (
-    {
-      title: item.title,
-      description: item.description,
-      price: item.price,
-      category: item.category,
-      brand: item.brand,
-      stock: item.stock || 0,
+  // Data Clean, Filter and Format (Excel columns mapping + Production Guard)
+  const productsToInsert = rawData
+    // Safeguard: Excel ki un rows ko filter out karo jisme main title hi missing ho (empty rows fix)
+    .filter((item) => item.title && item.title.toString().trim() !== "")
+    .map((item) => ({
+      title: item.title.toString().trim(),
+      description: item.description ? item.description.toString().trim() : "",
+      //  Typecast: Excel se string aaye toh bhi number ban jaye
+      price: Number(item.price) || 0,    
+      category: item.category ? item.category.toString().trim() : "",
+      brand: item.brand ? item.brand.toString().trim() : "",
+         //Typecast: Ensure it is a valid integer/number
+      stock: Number(item.stock) || 0,    
       createdBy: req.user._id,
-    })
-  );
+    }));
 
-  // push job to in bullMq(asynchronous)
-  await productQueue.add("bulkImportJob",
+  // Agar saare valid items filter ho gaye aur kuch nahi bacha
+  if (productsToInsert.length === 0) {
+    throw new ApiError(400, "No valid product rows found in the Excel file");
+  }
+
+  //  Push job to BullMQ
+  await productQueue.add(
+    "bulkImportJob",
     {
       sellerId: req.user._id,
       products: productsToInsert
     },
     {
-      attempts:3,
-      backoff:{
+      attempts: 3,
+      backoff: {
         type: "exponential",
         delay: 5000,
       },
@@ -105,15 +114,15 @@ export const importProductFromExcel = asyncHandler(async (req, res) => {
     }
   );
 
-  // reponse send to seller without waiting
+  // Response send to seller without waiting
   return res.status(202).json(
     new ApiResponse(
       202,
       null,
-      "File uploaded successFully!\n Products are being added in the background."
+      "File uploaded successfully!\nProducts are being added in the background."
     )
-  )
-})
+  );
+});
 
 export const updateProduct = asyncHandler(async (req, res) => {
   const { productId } = req.params;

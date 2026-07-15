@@ -28,6 +28,6 @@ router.patch("/:productId", protect, sellerOnly, upload.single("image"), updateP
 router.delete("/:productId", protect, sellerOnly, deleteProduct);
 router.post("/review/:productId", protect, addReview);
 
-router.post("/import", protect, sellerOnly, uploadExcel.single("excelFile"), importProductFromExcel);
+router.post("/import-excel", protect, sellerOnly, uploadExcel.single("excelFile"), importProductFromExcel);
 
 export default router;
