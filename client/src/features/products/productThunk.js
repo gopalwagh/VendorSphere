@@ -5,7 +5,8 @@ import {
   getProductById, 
   updateProductApi, 
   createProductApi, 
-  deleteProductApi 
+  deleteProductApi,
+  importProductsApi
 } from "../../api/productApi";
 
 import { 
@@ -146,3 +147,24 @@ export const deleteProductThunk = (productId) => {
     }
   }
 }
+
+export const bulkUploadProductsThunk = (formdata) => {
+  return async (dispatch) => {
+    try {
+      dispatch(setLoading(true))
+      const response = await importProductsApi(formData);
+
+      return {
+        success: true,
+        data : response,
+      };
+    } catch(error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || "Bulk upload failed",
+      }
+    } finally {
+      dispatch(setLoading(false));
+    }
+  };
+};

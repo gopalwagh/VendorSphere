@@ -68,3 +68,15 @@ export const getProductReviewsApi = async (productId) => {
   const response = await axiosInstance.get(`/products/reviews/${productId}`);
   return response.data;
 };
+
+export const importProductsApi = async (formData) => {
+  const response = await axiosInstance.post(
+    "/products/import", formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+  return response.data;
+};

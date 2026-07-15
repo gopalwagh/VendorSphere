@@ -5,9 +5,9 @@ import { Link } from "react-router-dom";
 const categories = [
   "Electronics",
   "Fashion",
-  "Shoes",
+  "Furniture",
   "Books",
-  "Mobiles",
+  "Groceries",
   "Gaming",
 ];
 
