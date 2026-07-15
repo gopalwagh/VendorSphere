@@ -11,6 +11,8 @@ await import("./workers/invoice.worker.js");
 await import("./workers/notification.worker.js");
 // start copilot Worker
 await import("./workers/copilot.worker.js");
+// start copilot Worker
+await import("./workers/product.worker.js");
 
 // start server
 await import("./server.js");
