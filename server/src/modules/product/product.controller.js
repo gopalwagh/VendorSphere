@@ -1,3 +1,6 @@
+// import excel
+import xlsx from "xlsx";
+
 import Product from "./product.model.js";
 import Order from "../order/order.model.js";
 import Cart from "../cart/cart.model.js";
@@ -9,7 +12,13 @@ import uploadToCloudinary from "../../utils/uploadToCloudinary.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
-import { getCachedData, setCachedData, invalidateProductCache } from "../../utils/redisHelper.js";
+import { 
+  getCachedData, 
+  setCachedData, 
+  invalidateProductCache 
+} from "../../utils/redisHelper.js";
+// productQueue 
+import productQueue from "../../queues/product.queue.js";
 
 export const createProduct = asyncHandler(async (req, res) => {
   const { title, description, price, category, brand, stock , } = req.body;
@@ -53,6 +62,58 @@ export const createProduct = asyncHandler(async (req, res) => {
       )
     );
 });
+
+// controller for adding bulk products through excel 
+export const importProductFromExcel = asyncHandler(async (req, res) => {
+  if(!req.file) throw new ApiError(400, "please Upload an Excel file");
+  
+  // 1.File parse 
+  const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
+  const sheetName = workbook.SheetNames[0];
+  const rawData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+  if(!rawData || rawData.length === 0){
+    throw new ApiError(400, "Excel file is Empty");
+  }
+
+  // Data format karna (Excel columns mapping)
+  const productsToInsert = rawData.map((item) => (
+    {
+      title: item.title,
+      description: item.description,
+      price: item.price,
+      category: item.category,
+      brand: item.brand,
+      stock: item.stock || 0,
+      createdBy: req.user._id,
+    })
+  );
+
+  // push job to in bullMq(asynchronous)
+  await productQueue.add("bulkImportJob",
+    {
+      sellerId: req.user._id,
+      products: productsToInsert
+    },
+    {
+      attempts:3,
+      backoff:{
+        type: "exponential",
+        delay: 5000,
+      },
+      removeOnComplete: true,
+    }
+  );
+
+  // reponse send to seller without waiting
+  return res.status(202).json(
+    new ApiResponse(
+      202,
+      null,
+      "File uploaded successFully!\n Products are being added in the background."
+    )
+  )
+})
 
 export const updateProduct = asyncHandler(async (req, res) => {
   const { productId } = req.params;

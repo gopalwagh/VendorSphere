@@ -2,7 +2,7 @@ import express from "express";
 
 import protect from "../../middleware/authMiddleware.js";
 import sellerOnly from "../../middleware/sellerMiddleware.js";
-import upload from "../../middleware/uploadMiddleware.js";
+import upload, { uploadExcel } from "../../middleware/uploadMiddleware.js";
 
 import {
   createProduct,
@@ -13,6 +13,7 @@ import {
   updateProduct,
   deleteProduct,
   getSellerProducts,
+  importProductFromExcel,
 } from "./product.controller.js";
 
 const router = express.Router();
@@ -26,5 +27,7 @@ router.post("/create", protect, sellerOnly, upload.single("image"), createProduc
 router.patch("/:productId", protect, sellerOnly, upload.single("image"), updateProduct);
 router.delete("/:productId", protect, sellerOnly, deleteProduct);
 router.post("/review/:productId", protect, addReview);
+
+router.post("/import", protect, sellerOnly, uploadExcel.single("excelFile"), importProductFromExcel);
 
 export default router;

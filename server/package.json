@@ -25,6 +25,7 @@
     "qrcode": "^1.5.4",
     "razorpay": "^2.9.6",
     "redis": "^5.12.1",
+    "xlsx": "^0.18.5",
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {

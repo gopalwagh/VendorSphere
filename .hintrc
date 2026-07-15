@@ -7,9 +7,12 @@
       "default",
       {
         "ignore": [
-          "backdrop-filter"
+          "backdrop-filter",
+          "scrollbar-gutter",
+          "scrollbar-gutter: stable"
         ]
       }
-    ]
+    ],
+    "css-prefix-order": "off"
   }
 }
