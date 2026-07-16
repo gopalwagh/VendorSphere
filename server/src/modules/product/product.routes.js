@@ -3,6 +3,7 @@ import express from "express";
 import protect from "../../middleware/authMiddleware.js";
 import sellerOnly from "../../middleware/sellerMiddleware.js";
 import upload, { uploadExcel } from "../../middleware/uploadMiddleware.js";
+import { rateLimiterMiddleware } from "../../middleware/rateLimiter.js";
 
 import {
   createProduct,
@@ -14,6 +15,7 @@ import {
   deleteProduct,
   getSellerProducts,
   importProductFromExcel,
+  descriptionOptimiser,
 } from "./product.controller.js";
 
 const router = express.Router();
@@ -29,5 +31,7 @@ router.delete("/:productId", protect, sellerOnly, deleteProduct);
 router.post("/review/:productId", protect, addReview);
 
 router.post("/import-excel", protect, sellerOnly, uploadExcel.single("excelFile"), importProductFromExcel);
+// description optimiser route
+router.post("/enrichDescription", rateLimiterMiddleware, descriptionOptimiser );
 
 export default router;
