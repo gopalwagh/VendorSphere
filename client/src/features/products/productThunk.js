@@ -6,7 +6,8 @@ import {
   updateProductApi, 
   createProductApi, 
   deleteProductApi,
-  importProductsApi
+  importProductsApi,
+  descriptionOptimiserApi
 } from "../../api/productApi";
 
 import { 
@@ -165,6 +166,24 @@ export const bulkUploadProductsThunk = (formdata) => {
       }
     } finally {
       dispatch(setLoading(false));
+    }
+  };
+};
+
+// this is a description optimiser thunk
+export const optimizeDescriptionThunk = (data) => {
+  return async (dispatch) => {
+    try {
+      const response = await descriptionOptimiserApi(data);
+      return {
+        success: true,
+        data : response.data,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message : error.response?.data?.message || "Optimization failed",
+      };
     }
   };
 };
