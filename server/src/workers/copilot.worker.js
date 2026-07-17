@@ -5,53 +5,54 @@ import Conversation from "../modules/copilot/conversation.model.js";
 const copilotWorker = new Worker(
   "copilotQueue",
   async (job) => {
-    const {
-      userId,
-      sellerId,
-      userMessage,
-      botResponse,
-      aiResponse,
-      answer,
+    const { 
+      sessionId, 
+      userId, 
+      sellerId, 
+      userMessage, 
+      botResponse, 
+      aiResponse, 
+      answer 
     } = job.data;
 
     const conversationUserId = userId || sellerId;
     const responseText = botResponse || aiResponse || answer || "";
 
-    if (!conversationUserId || !userMessage || !responseText) {
+    if (!sessionId || !conversationUserId || !userMessage || !responseText) {
       throw new Error("Invalid copilot job payload");
     }
 
-    let userObjectId;
+    let userObjectId = new mongoose.Types.ObjectId(conversationUserId);
+    const MAX_STORED_MESSAGES = 40; // Rolling window filter
+
     try {
-      userObjectId = new mongoose.Types.ObjectId(conversationUserId);
-    } catch {
-      throw new Error(`Invalid conversationUserId: ${conversationUserId}`);
-    }
-
-    // Cap stored history to last 40 messages (20 turns) — document ko unbounded
-    // grow hone se rokta hai, aur contextLoader ko hamesha sirf recent tail chahiye hoti hai
-    const MAX_STORED_MESSAGES = 40;
-
-    await Conversation.findOneAndUpdate(
-      { userId: userObjectId },
-      {
-        $push: {
-          messages: {
-            $each: [
-              { role: "user", text: userMessage },
-              { role: "model", text: responseText },
-            ],
-            $slice: -MAX_STORED_MESSAGES,
+      await Conversation.findOneAndUpdate(
+        { _id: sessionId },
+        {
+          $setOnInsert: {
+            userId: userObjectId,
+            title: userMessage.length > 42 ? userMessage.slice(0, 42) + "…" : userMessage,
+          },
+          $push: {
+            messages: {
+              $each: [
+                { role: "user", text: userMessage },
+                { role: "model", text: responseText },
+              ],
+              $slice: -MAX_STORED_MESSAGES,
+            },
           },
         },
-      },
-      {
-        upsert: true,
-        new: true,
-        setDefaultsOnInsert: true,
-      }
-    );
-
+        {
+          upsert: true,
+          returnDocument: 'after', //  'new: true' ki jagah ab ye use hoga deprecation se bachne ke liye
+          setDefaultsOnInsert: true,
+        }
+      );
+    } catch (dbError) {
+      console.error("[BullMQ] ❌ DB Save Error in Copilot Worker:", dbError.message);
+      throw dbError; 
+    }
     console.log(`[BullMQ] Copilot conversation saved for user: ${conversationUserId}`);
   },
   {

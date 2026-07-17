@@ -21,7 +21,10 @@ const conversationSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true,
-        unique: true // Ek user ka ek hi master chat thread track karenge
+    },
+    title: {
+        type: String,
+        default: "New Chat" // first message is the title
     },
     messages: [messageSchema]
 }, { timestamps: true });

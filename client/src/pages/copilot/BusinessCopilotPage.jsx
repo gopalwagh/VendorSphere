@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSelector } from "react-redux";
-import { sendCopilotMessage } from "../../api/copilotApi";
+import { sendCopilotMessage, getCopilotHistory } from "../../api/copilotApi";
 import { ROLES, normalizeRole } from "../../features/auth/roleUtils";
 import { useNavigate } from "react-router-dom";
 import "./BusinessCopilotPage.css";
@@ -92,11 +92,7 @@ const StaticBubble = ({ text }) => (
   <div className="bcp-msg-bubble">{renderText(text)}</div>
 );
 
-/* ══════════════════════════════════════════
-   CHAT SESSION — holds messages for one session
-   ══════════════════════════════════════════ */
-
-const HISTORY_PAGE_SIZE = 10;
+const HISTORY_PAGE_SIZE = 15;
 
 const BusinessCopilotPage = () => {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -115,27 +111,24 @@ const BusinessCopilotPage = () => {
   const chips = isSuperAdmin ? ADMIN_CHIPS : SELLER_CHIPS;
   const roleLabel = isSuperAdmin ? "Super Admin" : "Seller";
 
-  /* ── Chat sessions (each session = { id, title, messages[] }) ── */
-  const [sessions, setSessions] = useState(() => {
-    try {
-      const saved = localStorage.getItem("bcp_sessions");
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
+  /* ── Chat states ── */
+  const [sessions, setSessions] = useState([]);
   const [activeSessionId, setActiveSessionId] = useState(null);
+  const [messages, setMessages] = useState([]);
 
-  /* ── History pagination ── */
+  /* ── History & Pagination states ── */
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState(null);
   const [visibleCount, setVisibleCount] = useState(HISTORY_PAGE_SIZE);
 
-  /* ── UI states ── */
-  const [messages, setMessages] = useState([]);
+  /* ── UI Operational states ── */
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [streamingId, setStreamingId] = useState(null);
   const [error, setError] = useState(null);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
-  /* ── Light Mode State ── */
+  /* ── Theme State ── */
   const [isLightMode, setIsLightMode] = useState(() => {
     try {
       return localStorage.getItem("bcp_theme") === "light";
@@ -147,28 +140,55 @@ const BusinessCopilotPage = () => {
     catch { /* quota */ }
   }, [isLightMode]);
 
-
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
 
-  /* Persist sessions to localStorage */
+  /* ── One-Time Mount: Garbage clean localstorage & fetch DB history ── */
   useEffect(() => {
-    try { localStorage.setItem("bcp_sessions", JSON.stringify(sessions)); }
-    catch { /* quota */ }
-  }, [sessions]);
+    localStorage.removeItem("bcp_sessions"); // Leak protection
 
-  /* Load messages when session changes */
-  useEffect(() => {
-    if (activeSessionId) {
-      const sess = sessions.find((s) => s.id === activeSessionId);
-      setMessages(sess ? sess.messages : []);
-    } else {
-      setMessages([]);
-    }
-    setError(null);
-    setStreamingId(null);
-    // eslint-disable-next-line
-  }, [activeSessionId]);
+    if (!isAuthenticated) return;
+
+    const fetchHistory = async () => {
+      setHistoryLoading(true);
+      setHistoryError(null);
+      try {
+        console.log("[Copilot] Fetching real history from DB...");
+        const docs = await getCopilotHistory();
+
+        if (!Array.isArray(docs)) {
+          setHistoryError("Unexpected response from server.");
+          return;
+        }
+
+        const mapped = docs.map((doc) => ({
+          id: doc._id, // Real Mongo ID
+          title: doc.title && doc.title !== "New Chat"
+              ? doc.title
+              : doc.messages?.[0]?.text?.slice(0, 42) + "…" || "Untitled Chat",
+          createdAt: doc.createdAt,
+          messages: (doc.messages || []).map((m, idx) => ({
+            id: idx,
+            role: m.role === "model" ? "assistant" : m.role,
+            text: m.text,
+            time: new Date(m.timestamp || doc.createdAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          })),
+        }));
+
+        setSessions(mapped);
+      } catch (err) {
+        const msg = err?.response?.data?.message || err?.message || "Failed to load history";
+        setHistoryError(msg);
+      } finally {
+        setHistoryLoading(false);
+      }
+    };
+
+    fetchHistory();
+  }, [isAuthenticated]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -186,9 +206,13 @@ const BusinessCopilotPage = () => {
     setMobileSidebarOpen(false);
   };
 
-  /* ── Open a past session ── */
+  /* ── Open a past session (Safely loads messages instantly) ── */
   const openSession = (id) => {
     setActiveSessionId(id);
+    const sess = sessions.find((s) => s.id === id);
+    setMessages(sess ? sess.messages : []);
+    setError(null);
+    setStreamingId(null);
     setMobileSidebarOpen(false);
   };
 
@@ -218,9 +242,10 @@ const BusinessCopilotPage = () => {
       };
 
       let currentSessionId = activeSessionId;
+      const isNewChat = !currentSessionId || currentSessionId.startsWith("sess_");
 
-      // Create session if none active
-      if (!currentSessionId) {
+      // UI Layout sync: Create session array item instantly if it's a new chat thread
+      if (isNewChat && !activeSessionId) {
         currentSessionId = `sess_${Date.now()}`;
         const newSession = {
           id: currentSessionId,
@@ -240,17 +265,18 @@ const BusinessCopilotPage = () => {
 
       if (textareaRef.current) textareaRef.current.style.height = "24px";
 
-      // Sync user message into sessions
+      // Instantly sync user message inside the structural list
       setSessions((prev) =>
         prev.map((s) =>
-          s.id === currentSessionId
-            ? { ...s, messages: updatedMessages }
-            : s
+          s.id === currentSessionId ? { ...s, messages: updatedMessages } : s
         )
       );
 
       try {
-        const data = await sendCopilotMessage(trimmed);
+        // 🔥 FIX 1: Send 'undefined' to backend if it's a temporary client ID string
+        const sendSessionId = currentSessionId.startsWith("sess_") ? undefined : currentSessionId;
+        
+        const data = await sendCopilotMessage(trimmed, sendSessionId);
         const aiId = Date.now() + 1;
 
         const aiMsg = {
@@ -265,13 +291,17 @@ const BusinessCopilotPage = () => {
         setMessages(withAi);
         setStreamingId(aiId);
 
+        // 🔥 FIX 2: Overwrite temporary ID with the real MongoDB session ObjectId returned from API response
+        const realSessionId = data.sessionId;
         setSessions((prev) =>
           prev.map((s) =>
             s.id === currentSessionId
-              ? { ...s, messages: withAi }
+              ? { ...s, id: realSessionId, messages: withAi }
               : s
           )
         );
+        setActiveSessionId(realSessionId);
+
       } catch (err) {
         const status = err?.response?.status;
         const serverMsg = err?.response?.data?.message;
@@ -300,24 +330,23 @@ const BusinessCopilotPage = () => {
     e.target.style.height = Math.min(e.target.scrollHeight, 140) + "px";
   };
 
+  // 🔥 FIX 3: Atomic state sync to prevent race conditions during text stream completion[cite: 1]
   const handleStreamingDone = useCallback((id) => {
-    setMessages((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, streaming: false } : m))
-    );
-    setStreamingId(null);
-
-    // Persist settled messages
-    setMessages((latest) => {
-      setSessions((prev) =>
-        prev.map((s) =>
-          s.id === activeSessionId ? { ...s, messages: latest } : s
+    setMessages((prev) => {
+      const updated = prev.map((m) => (m.id === id ? { ...m, streaming: false } : m));
+      
+      // Update the main session state array directly using the fresh settled list
+      setSessions((prevSessions) =>
+        prevSessions.map((s) =>
+          s.id === activeSessionId ? { ...s, messages: updated } : s
         )
       );
-      return latest;
+      return updated;
     });
+    setStreamingId(null);
   }, [activeSessionId]);
 
-  /* ── Sorted sessions (newest first) & pagination ── */
+  /* ── Chronological order mapping ── */
   const sortedSessions = [...sessions].sort(
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   );
@@ -338,12 +367,8 @@ const BusinessCopilotPage = () => {
 
   return (
     <div className={`bcp-root ${isLightMode ? "light" : ""}`}>
-      {/* ── Mobile sidebar overlay ── */}
       {mobileSidebarOpen && (
-        <div
-          className="bcp-sidebar-overlay"
-          onClick={() => setMobileSidebarOpen(false)}
-        />
+        <div className="bcp-sidebar-overlay" onClick={() => setMobileSidebarOpen(false)} />
       )}
 
       {/* ══ LEFT SIDEBAR ══ */}
@@ -370,13 +395,29 @@ const BusinessCopilotPage = () => {
         </div>
 
         <div className="bcp-history-section">
-          {visibleSessions.length === 0 ? (
+          {historyLoading ? (
+            <div className="bcp-history-empty">
+              <div className="bcp-spinner" style={{ margin: "0 auto 8px" }} />
+              Loading chats…
+            </div>
+          ) : historyError ? (
+            <div className="bcp-history-empty" style={{ color: "var(--bcp-error, #f87171)" }}>
+              ⚠️ {historyError}
+              <button
+                className="bcp-load-more-btn"
+                style={{ marginTop: "8px" }}
+                onClick={() => setHistoryError(null) || setHistoryLoading(true)}
+              >
+                Retry
+              </button>
+            </div>
+          ) : visibleSessions.length === 0 ? (
             <div className="bcp-history-empty">
               No previous chats yet.<br />Start a conversation!
             </div>
           ) : (
             <>
-              <div className="bcp-history-label">Recent Chats</div>
+              <div className="bcp-history-label">Recent Chats ({sessions.length})</div>
               {visibleSessions.map((sess) => (
                 <div
                   key={sess.id}
@@ -401,7 +442,7 @@ const BusinessCopilotPage = () => {
                   className="bcp-load-more-btn"
                   onClick={() => setVisibleCount((c) => c + HISTORY_PAGE_SIZE)}
                 >
-                  Load more chats
+                  Load {Math.min(sessions.length - visibleCount, HISTORY_PAGE_SIZE)} more chats
                 </button>
               )}
             </>
@@ -411,7 +452,6 @@ const BusinessCopilotPage = () => {
 
       {/* ══ MAIN CHAT AREA ══ */}
       <div className="bcp-main">
-        {/* Top bar - Simplified for dashboard layout */}
         <div className="bcp-topbar">
           <div className="bcp-topbar-left">
             <button
@@ -428,7 +468,6 @@ const BusinessCopilotPage = () => {
           </div>
         </div>
 
-        {/* Messages */}
         <div className="bcp-messages">
           {messages.length === 0 ? (
             <div className="bcp-welcome">
@@ -456,10 +495,7 @@ const BusinessCopilotPage = () => {
           ) : (
             <>
               {messages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`bcp-msg-row ${msg.role}`}
-                >
+                <div key={msg.id} className={`bcp-msg-row ${msg.role}`}>
                   <div className="bcp-msg-avatar">
                     {msg.role === "user" ? "👤" : "✦"}
                   </div>
@@ -471,10 +507,7 @@ const BusinessCopilotPage = () => {
                       <span>· {msg.time}</span>
                     </div>
                     {msg.role === "assistant" && msg.streaming && streamingId === msg.id ? (
-                      <StreamedBubble
-                        text={msg.text}
-                        onDone={() => handleStreamingDone(msg.id)}
-                      />
+                      <StreamedBubble text={msg.text} onDone={() => handleStreamingDone(msg.id)} />
                     ) : (
                       <StaticBubble text={msg.text} />
                     )}
@@ -482,7 +515,6 @@ const BusinessCopilotPage = () => {
                 </div>
               ))}
 
-              {/* Typing indicator */}
               {loading && (
                 <div className="bcp-msg-row assistant">
                   <div className="bcp-msg-avatar">✦</div>
@@ -499,7 +531,6 @@ const BusinessCopilotPage = () => {
                 </div>
               )}
 
-              {/* Error */}
               {error && !loading && (
                 <div className="bcp-error">
                   <span>⚠️</span>
@@ -507,15 +538,10 @@ const BusinessCopilotPage = () => {
                 </div>
               )}
 
-              {/* Quick chips */}
               {messages.length > 0 && !loading && streamingId === null && (
                 <div className="bcp-inline-chips">
                   {chips.slice(0, 3).map((chip) => (
-                    <button
-                      key={chip}
-                      className="bcp-chip"
-                      onClick={() => sendMessage(chip)}
-                    >
+                    <button key={chip} className="bcp-chip" onClick={() => sendMessage(chip)}>
                       {chip}
                     </button>
                   ))}
@@ -526,7 +552,6 @@ const BusinessCopilotPage = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
         <div className="bcp-input-section">
           <div className={`bcp-input-wrap ${loading ? "locked" : ""}`}>
             <textarea

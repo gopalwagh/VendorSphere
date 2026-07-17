@@ -3,9 +3,9 @@ import Conversation from "./conversation.model.js";
 /*
  * Fetches the recent 6 chat messages from MongoDB for LLM context window
  */
-export const loadConversationContext = async (userId) => {
+export const loadConversationContext = async (sessionId) => {
     try {
-        const conversation = await Conversation.findOne({ userId });
+        const conversation = await Conversation.findById(sessionId);
         
         if (!conversation || !conversation.messages) {
             return [];
