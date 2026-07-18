@@ -19,6 +19,10 @@ const productSchema = new mongoose.Schema(
       type : String,
       required : true,
     },
+    tags : {
+      type : [String],
+      default : [], // Sabse zaroori line!
+    },
     brand : {
       type : String,
     },
@@ -68,6 +72,12 @@ const productSchema = new mongoose.Schema(
     timestamps : true 
   }
 );
+
+productSchema.index({ 
+  title: "text", 
+  category: "text", 
+  tags: "text" 
+});
 
 const Product = mongoose.model("Product", productSchema);
 

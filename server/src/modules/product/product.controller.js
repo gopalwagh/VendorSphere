@@ -1,5 +1,7 @@
 // import excel
 import xlsx from "xlsx";
+// import Gemini api 
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 import Product from "./product.model.js";
 import Order from "../order/order.model.js";
@@ -19,6 +21,7 @@ import {
 } from "../../utils/redisHelper.js";
 // productQueue 
 import productQueue from "../../queues/product.queue.js";
+import { response } from "express";
 
 export const createProduct = asyncHandler(async (req, res) => {
   const { title, description, price, category, brand, stock , } = req.body;
@@ -440,3 +443,90 @@ export const getSellerProducts = asyncHandler(async (req,res) => {
     )
   )
 })
+
+export const descriptionOptimiser = asyncHandler(async(req,res) => {
+  const { title, category, rawNotes } = req.body;
+  // double check on backend
+  if (!title?.trim() || !category?.trim()) {
+    throw new ApiError( 404, "Validation Failed: Product Title and Category are absolutely required!" );
+  }
+  
+  // Intialise Grmini using Gemini_API_KEY
+  if (!process.env.GEMINI_API_KEY_Descriptions){
+    throw new ApiError( 404, "GEMINI_API_KEY_Descriptions is not set in the environment variables!");
+  }
+
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_Descriptions);
+  
+  // System Instructions & Structuring Prompt
+  const systemInstructions = `
+    You are an E-commerce SEO Copywriter. Optimize raw product details into a high-converting description and 5 SEO tags.
+
+    RULES:
+    1. Description: Write a professional description in PLAIN TEXT. Use simple line breaks (\\n) for new paragraphs. Strictly NO HTML tags (like <p>, <b>) and NO Markdown (like ** or #).
+    2. Tags: Exactly 5 search-friendly keywords for MongoDB index.
+    3. Output: ONLY raw, valid JSON matching the schema below. No markdown backticks, markdown code blocks, or trailing commas.
+
+    Schema:
+    {
+      "optimizedDescription": "HTML string here",
+      "seoTags": ["tag1", "tag2", "tag3", "tag4", "tag5"]
+    }
+  `;
+  
+  const userPrompt = `
+    Product Details: 
+      - Title : ${ title },
+      - Category: ${ category }
+      - Seller Raw Notes: ${ rawNotes || "No raw notes provided. Optimize purely using the Title and Category." }
+    `;
+    
+  // CALLING GEMINI 2.5 FLASH WITH JSON CONSTRAINT  
+  try {
+    // strandardizing model configurations
+    const model = genAI.getGenerativeModel({
+      model : "gemini-2.5-flash",
+      generationConfig: {
+        // Forces the model to return JSON
+        responseMimeType: "application/json",
+        // Keeps it creative but highly grounded to inputs
+        temperature: 0.7,
+      }
+    });
+    
+    const result = await model.generateContent(`${systemInstructions}\n\n${userPrompt}`);
+    const rawResponseText = result.response.text();
+    
+    // SECURE PARSING & FALLBACK CONTROL
+    let finalParsedData;
+    try {
+      finalParsedData = JSON.parse(rawResponseText);
+      
+    } catch (jsonParseError) {
+      console.error("JSON Parsing failed for Gemini output. Raw Output was:", rawResponseText);
+
+      // safe fallback
+      finalParsedData = {
+        optimizedDescription: rawNotes || `${title} under ${category} category. Ready to ship.`,
+        seoTags: [category.toLowerCase(), ...title.toLowerCase().split(" ").slice(0, 4)]
+      };
+    }
+
+    // DISPATCHING CLEAN RESPONSE
+    const responseData = {
+      optimizedDescription: finalParsedData.optimizedDescription,
+      seoTags: finalParsedData.seoTags
+    }
+    
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        responseData,
+        "Metadata enriched and optimized successfully!"
+      )
+    )
+  } catch (geminiApiError) {
+    console.error("Gemini Api call crashed", geminiApiError);
+    throw new ApiError(500, "Could not reach AI servers. Please try again in a moment.");
+  }
+});

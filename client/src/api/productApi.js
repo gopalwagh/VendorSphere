@@ -80,3 +80,9 @@ export const importProductsApi = async (formData) => {
   );
   return response.data;
 };
+
+export const descriptionOptimiserApi = async({ title, category, rawNotes }) => {
+  const response = await axiosInstance.post("/products/enrichDescription", { title, category , rawNotes });
+
+  return response.data;
+}
