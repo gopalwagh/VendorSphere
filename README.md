@@ -1,45 +1,66 @@
 # 🛍️ VendorSphere
-
-> **A multi-vendor marketplace platform with an agentic AI Business Copilot — combining secure authentication, asynchronous background processing, real-time notifications, LLM-powered merchant analytics, and online payment integration.**
-
-VendorSphere is a full-stack marketplace platform that enables **Customers**, **Sellers**, and **Super Admins** to seamlessly manage products, orders, payments, and notifications through a secure and intuitive interface.
-
-Unlike a traditional CRUD application, VendorSphere incorporates production-oriented backend concepts such as **JWT Authentication**, **Redis**, **BullMQ**, **Firebase Cloud Messaging (FCM)**, **MongoDB Aggregation Pipelines**, **Cloudinary**, **Razorpay**, and an **agentic AI layer built on LlamaIndex and Google Gemini** to improve reliability, responsiveness, and merchant decision-making.
-
----
-
-## 🚀 Key Highlights
-
-- 🛒 Multi-Vendor Marketplace
-- 🔐 JWT Authentication (Access & Refresh Tokens)
-- 👥 Role-Based Access Control (RBAC)
-- 🤖 **Agentic AI Business Copilot** — natural-language sales, profitability, and inventory insights for sellers and admins
-- 📦 **Bulk Product Import from Excel**(100+) — processed asynchronously via BullMQ, no UI blocking
-- ✍️ **AI Product Description Optimizer and tags generation** — Gemini-powered catalog copy generation
-- ⚡ Redis Caching
-- 🔄 BullMQ Background Job Processing
-- 🔔 Firebase Cloud Messaging (FCM) — real-time order, approval, and stock alerts
-- 💳 Razorpay Payment Gateway Integration
-- ☁️ Cloudinary Media Management
-- 📊 Seller & Admin Analytics Dashboards
-- 📈 MongoDB Aggregation Pipelines
-- 🌐 RESTful API Architecture
-- 📱 Responsive React User Interface
+ 
+> **A Production-Grade Multi-Vendor Marketplace Powered by an Agentic AI Business Copilot**
+> *Transforming raw e-commerce data into actionable seller insights through real-time database aggregations, async background queues, and server-enforced tenant isolation.*
+ 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vendor-sphere-seven.vercel.app/)
+[![Source Code](https://img.shields.io/badge/Source_Code-GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/gopalwagh/VendorSphere)
 
 ---
 
-## 🤖 Business Copilot — Agentic AI Layer
+## 🎯 The Product Vision
+ 
+Traditional e-commerce platforms overwhelm sellers with static tables, complex filters, and disjointed analytics dashboards. Small business owners often struggle to extract actionable insights — like identifying loss-making products, spotting low stock in time, or understanding profitability trends.
+ 
+**VendorSphere solves this by replacing static dashboards with an Agentic AI Business Copilot.** Instead of manually digging through numbers, merchants can ask plain-language questions and get instant, data-backed answers grounded directly in live MongoDB aggregation pipelines — not canned reports.
+ 
+---
+ 
+## 💡 Traditional Marketplace vs. VendorSphere
+ 
+| Feature | Traditional Marketplaces | VendorSphere Architecture |
+| :--- | :--- | :--- |
+| **Merchant Analytics** | Static tables & pre-baked charts | **ReAct Agent AI Copilot** executing live database queries on demand |
+| **Data Security** | Client-side filtering or basic queries | **Server-Enforced Tenant Isolation** — the LLM never sees or controls tenant IDs |
+| **Product Onboarding** | Synchronous bulk uploads causing UI freezes | **Asynchronous Job Queues (BullMQ + Redis)** for non-blocking ingestion |
+| **Content Creation** | Manual product copywriting | **AI Description Optimizer** powered by Google Gemini |
+| **Event Alerts** | Email-only or polling-based | **Real-time Push Notifications** via Firebase Cloud Messaging |
+ 
+---
+ 
+## 🔑 Platform Features
+ 
+### 🏪 For Sellers — Merchant Empowerment
+- **AI Business Copilot** — Ask plain-language questions about sales, profitability, and inventory and get instant, data-grounded answers.
+- **Async Bulk Product Import** — Upload an Excel sheet of products; it's processed in the background via BullMQ without blocking the UI.
+- **AI Catalog Optimizer** — Auto-generate product descriptions using Google Gemini.
+- **FCM Real-Time Alerts** — Instant notifications for new orders, low-stock warnings, and store approval status.
+- **Seller Analytics Dashboard** — Sales trends, top products, and category performance via MongoDB aggregation.
+### 🛡️ For Super Admins — Platform Governance
+- **Platform-Wide Copilot** — Query system-level metrics: total platform revenue, seller leaderboards, coupon effectiveness, and pending vendor approvals — all in plain language.
+- **Merchant Approval Pipeline** — Review and approve/reject seller store applications.
+- **Coupon Management** — Create and manage platform-wide discount coupons.
+- **Role-Based Access Control (RBAC)** — Strict JWT-based session security separating Admin, Seller, and Customer scopes.
+### 🛒 For Customers — Seamless Shopping
+- **Multi-Vendor Browsing** — Category filtering, product search, reviews, and ratings across sellers.
+- **Cart & Order Management** — Persistent cart, order history, and real-time order status tracking.
+- **Secure Checkout** — Razorpay-integrated payment gateway with coupon support.
 
-VendorSphere's Business Copilot lets sellers and super admins ask plain-language questions about their business and get answers grounded in real, live database data — not canned reports.
+---
 
-**How it works:**
-- Built with a **ReAct (Reasoning + Acting) agent** via **LlamaIndex**, powered by **Google Gemini**.
-- The agent has access to a set of scoped analytics tools (sales trends, profitability analysis, top-selling products, inventory status, category breakdowns, customer insights) and decides autonomously which tools to call — including chaining multiple tool calls together for compound questions like *"Am I profitable this month, and if not, which product should I drop?"*
-- **Strict tenant isolation**: a seller's identity is bound server-side to their tools before the agent ever runs — the LLM never receives or controls whose data it's querying, so one seller can never see another seller's numbers.
-- Super Admins get a separate tool set with platform-wide visibility — revenue, seller leaderboards, coupon effectiveness, and pending seller approvals.
-- Conversation history is persisted per user so the Copilot maintains context across a session.
-
-# **System Architecture**
+## 🤖 Business Copilot — Architecture & Security
+ 
+The Business Copilot uses a **ReAct (Reasoning + Acting)** agent pattern built on **LlamaIndex** and **Google Gemini**. 
+It dynamically selects and executes database tools based on natural-language queries, chaining multiple tool calls together for compound questions.
+ 
+### 🔒 Server-Side Tenant Isolation
+A critical vulnerability in LLM-powered systems is data leakage across tenants. VendorSphere enforces **zero-trust tenant isolation**:
+1. The user's `userId` and `role` are extracted strictly from the verified JWT — never trusted from the request body.
+2. When the ReAct Agent triggers a tool (e.g. `getSalesTrend`), the backend binds the authenticated `sellerId` into the MongoDB aggregation **server-side**, before the tool ever runs.
+3. The LLM never receives, sees, or controls tenant identifiers — a seller can never see another seller's data, and prompt injection attempts to access another vendor's data have no identifier to inject.
+Super Admins get a completely separate tool registry with platform-wide visibility, gated by role at the controller level.
+ 
+### 🏗️ System Architecture
 
 Below is the execution flow when a seller or admin sends a message to the Copilot:
 
@@ -58,19 +79,6 @@ flowchart TD
     C -.->|11. Queue chat log async| H[[BullMQ + Redis]]
     H -.->|12. Save turn| D
 ```
-
-1. Seller/admin sends a natural-language question through the chat UI.
-2. Auth middleware verifies the JWT and extracts `userId` and `role` — never trusted from the request body.
-3. The controller loads the last N turns of conversation history from MongoDB.
-4. The query and history are handed to the ReAct agent, along with a **role-specific tool set** (seller tools vs. admin tools). 
-5. The agent reasons about which tool(s) it needs,
-6. The tool executes a MongoDB aggregation — with `sellerId` bound server-side, not supplied by the LLM.
-7. Results flow back to the agent,
-8. Which may call additional tools for compound, multi-part questions.
-9. The agent synthesizes a final natural-language answer
-10. The answer is returned to the client immediately.
-11. In parallel, the turn is queued via BullMQ
-12. Saved to MongoDB asynchronously — the user never waits on this write.
 
 **Example questions it can answer:**
 - "Compare my sales to last month — am I profitable?"
@@ -193,12 +201,6 @@ VendorSphere is actively evolving, with several advanced features planned for fu
 ### Engineering Improvements
 - 🐳 Docker containerization
 - ⚖️ Horizontal scaling support
-
----
-
-## 🌐 Live Demo
-
-https://vendor-sphere-seven.vercel.app/
 
 ---
 
